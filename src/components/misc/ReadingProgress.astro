@@ -1,0 +1,49 @@
+---
+// 阅读进度条组件
+---
+
+<div id="reading-progress-bar" class="reading-progress-bar"></div>
+
+<style>
+  .reading-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(90deg,
+      hsl(var(--hue), 70%, 50%),
+      hsl(calc(var(--hue) + 30), 70%, 50%),
+      hsl(calc(var(--hue) + 60), 70%, 50%)
+    );
+    z-index: 9999;
+    transition: width 0.1s ease-out;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+</style>
+
+<script>
+  function updateProgressBar() {
+    const progressBar = document.getElementById('reading-progress-bar');
+    if (!progressBar) return;
+
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+
+    if (scrollHeight > 0) {
+      const progress = (scrollTop / scrollHeight) * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+  }
+
+  // 初始化
+  updateProgressBar();
+
+  // 监听滚动事件
+  window.addEventListener('scroll', updateProgressBar, { passive: true });
+
+  // 监听页面变化（Swup 页面切换）
+  document.addEventListener('swup:page-view', () => {
+    updateProgressBar();
+  });
+</script>

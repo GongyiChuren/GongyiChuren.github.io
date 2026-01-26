@@ -32,6 +32,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Ensure .nojekyll
+        run: echo "" > dist/.nojekyll
+
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:

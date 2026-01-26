@@ -5,14 +5,14 @@ export const announcementConfig: AnnouncementConfig = {
 	title: "📢 公告",
 
 	// 公告内容
-	content: "我必须回应，一如既往。",
+	content: "我受到了召唤,我必须回应,一如既往。",
 
 	// 是否允许用户关闭公告
 	closable: true,
 
 	link: {
 		// 启用链接
-		enable: true,
+		enable: false,
 		// 链接文本
 		text: "关于我",
 		// 链接 URL

@@ -46,6 +46,7 @@ const yearText = i18n(I18nKey.year);
 // 获取当前语言
 const currentLang = siteConfig.lang || "en";
 
+const enablePostRecords = false;
 const calendarDataUrl = url("/api/calendar.json");
 const postUrlPrefix = url("/posts/");
 ---
@@ -164,6 +165,13 @@ const postUrlPrefix = url("/posts/");
   }
 
   async function fetchData() {
+    if (!enablePostRecords) {
+      postDateMap = {};
+      allPostsData = [];
+      availableYears = [new Date().getFullYear()];
+      renderCalendar();
+      return;
+    }
     try {
       const response = await fetch(calendarDataUrl);
       allPostsData = await response.json();
@@ -200,7 +208,9 @@ const postUrlPrefix = url("/posts/");
     if (container) container.style.display = currentView === 'day' ? 'block' : 'none';
     if (monthContainer) monthContainer.style.display = currentView === 'month' ? 'grid' : 'none';
     if (yearContainer) yearContainer.style.display = currentView === 'year' ? 'grid' : 'none';
-    if (postsContainer) postsContainer.style.display = currentView === 'day' ? 'block' : 'none';
+    if (postsContainer) {
+      postsContainer.style.display = enablePostRecords && currentView === 'day' ? 'block' : 'none';
+    }
 
     updateHeader();
 
@@ -267,8 +277,8 @@ const postUrlPrefix = url("/posts/");
     // 添加每一天
     for (let day = 1; day <= daysInMonth; day++) {
       const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const posts = postDateMap[dateKey] || [];
-      const count = posts.length;
+      const posts = enablePostRecords ? (postDateMap[dateKey] || []) : [];
+      const count = enablePostRecords ? posts.length : 0;
       calendarDays.push({
         day,
         hasPost: count > 0,
@@ -316,10 +326,11 @@ const postUrlPrefix = url("/posts/");
     });
     
     // 显示当月文章列表
-    showMonthlyPosts(currentMonthPosts);
-    
-    // 添加点击事件监听
-    setupClickHandlers(currentMonthPosts);
+    if (enablePostRecords) {
+      showMonthlyPosts(currentMonthPosts);
+      // 添加点击事件监听
+      setupClickHandlers(currentMonthPosts);
+    }
   }
 
   function renderMonthView() {

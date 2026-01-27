@@ -2,13 +2,16 @@
 title: Agent Skills 使用分享：用 AI 工具快速搭建个人博客
 description: 如何把 AI 建站流程封装成 Agent Skills，实现从需求拆解到自动部署的闭环。案例：用 Gemini + Claude + Codex + Cloudflare 搭建 Astro 博客，结合 Skills 体系，几小时内上线。
 published: 2026-01-27
+
 tags:
   - "AI"
   - "Claude code"
   - "Agent skills"
   - "Blogs"
   - "CLI"
-image: /posts/images/vitepress2.png
+category: "AI编程"
+draft: false
+image: /posts/images/2.webp
 ---
 
 在 2026 年，AI 工具已经让“搭建个人博客”变得像聊天一样简单，但我更进一步：把整个过程封装成 **Agent Skills**（一种可复用提示模板 + 触发规则的技能包），让 AI 在对话中自动调用对应模块，实现“说需求 → 拆解执行 → 校验输出”的闭环。
@@ -20,7 +23,7 @@ image: /posts/images/vitepress2.png
 AI 建站工具多，但传统方式还是有痛点：
 
 - **重复操作**：每次建站都要重述需求、改配置、调样式，容易忘上次的最佳实践
-- **易出错**：跨工具切换（Gemini 到 Claude），上下文丢了重来
+- **易出错**：跨工具切换（Gemini 到 Claude），上下文丢了重来；manus的lite版理解能力不强
 - **不可复用**：好不容易调好的 prompt，下个项目又从零写
 
 Agent Skills 就是我的解决方案：把常见操作封装成小模块（prompt 模板 + 触发词），让 AI 像工具箱一样调用。例如，一个 “integrate-repo” skill 专门处理仓库整合，触发后自动执行标准化步骤，避免每次闲聊。
@@ -98,19 +101,19 @@ Skills 实际是 .txt 或 .md 文件存的 prompt 模板，我在对话中复制
 | 跨工具切换 | 上下文丢 | Skills 加“引用上步输出 ID”规则，如 “基于 #output-123 继续” |
 
 ## 我目前的 Skill 目录结构
-agent-skills/
-├── general/
-│   ├── generate-outline.txt    # 脑暴大纲模板
-│   ├── validate-output.txt     # 代码/配置校验
-│   └── code-merger.txt         # 合并多步输出
-├── ai-build/
-│   ├── integrate-repo.txt      # 仓库整合
-│   ├── customize-style.txt     # 样式自定义
-│   └── setup-deploy.txt        # 部署配置
-└── project-specific/
-    └── astro-cloudflare.txt    # Astro + Cloudflare 专属提醒
+agent-skills/  
+├── general/  
+│   ├── generate-outline.txt    # 脑暴大纲模板  
+│   ├── validate-output.txt     # 代码/配置校验  
+│   └── code-merger.txt         # 合并多步输出  
+├── ai-build/  
+│   ├── integrate-repo.txt      # 仓库整合  
+│   ├── customize-style.txt     # 样式自定义  
+│   └── setup-deploy.txt        # 部署配置  
+└── project-specific/  
+    └── astro-cloudflare.txt    # Astro + Cloudflare 专属提醒     
 
-版本管理：Git 私有仓库，改动 commit + tag v1.3，Skills 里引用最新。
+版本管理：Git 私有仓库，改动 commit + tag v1.3，Skills 里引用最新。    
 
 ## 后续计划
 
@@ -133,6 +136,4 @@ Agent Skills 特别适合像 AI 建站这种重复性强的任务，让你从“
 
 1. 挑一个重复操作（如生成大纲），写成 .txt prompt
 2. 起名 #generate-outline，下次对话直接触发
-3. 用 2–3 次后扩展成包，很快就上瘾了
-
-欢迎分享你的 Skills 玩法～。
+3. 用 2–3 次后扩展成包，很快就搭建好了

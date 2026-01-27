@@ -1,4 +1,3 @@
-```markdown
 ---
 title: Agent Skills 使用分享：用 AI 工具快速搭建个人博客
 description: 如何把 AI 建站流程封装成 Agent Skills，实现从需求拆解到自动部署的闭环。案例：用 Gemini + Claude + Codex + Cloudflare 搭建 Astro 博客，结合 Skills 体系，几小时内上线。
@@ -137,4 +136,3 @@ Agent Skills 特别适合像 AI 建站这种重复性强的任务，让你从“
 3. 用 2–3 次后扩展成包，很快就上瘾了
 
 欢迎分享你的 Skills 玩法～。
-```

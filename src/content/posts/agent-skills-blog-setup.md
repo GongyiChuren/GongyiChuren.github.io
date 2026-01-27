@@ -9,7 +9,7 @@ tags:
   - "Agent skills"
   - "Blogs"
   - "CLI"
-heroImage: /posts/images/vitepress2.png
+image: /posts/images/vitepress2.png
 ---
 
 在 2026 年，AI 工具已经让“搭建个人博客”变得像聊天一样简单，但我更进一步：把整个过程封装成 **Agent Skills**（一种可复用提示模板 + 触发规则的技能包），让 AI 在对话中自动调用对应模块，实现“说需求 → 拆解执行 → 校验输出”的闭环。

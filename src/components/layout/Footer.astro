@@ -37,13 +37,7 @@ if (footerConfig.enable) {
   <div class="transition text-50 text-sm text-center">
     {customFooterHtml && <div class="mb-2" set:html={customFooterHtml} />}
     &copy; <span id="copyright-year">{currentYear}</span>
-    {profileConfig.name}. All Rights Reserved. /
-    <a
-      class="transition link text-[var(--primary)] font-medium"
-      target="_blank"
-      href={url("rss.xml")}
-      >RSS</a
-    ><br />
+    {profileConfig.name}. All Rights Reserved.<br />
     Powered by
     <a
       class="transition link text-[var(--primary)] font-medium"

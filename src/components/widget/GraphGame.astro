@@ -51,6 +51,7 @@ const worldWidth = 520;
     let boss = { active: false, tier: 0, x: 0, y: 90, w: 30, h: 30, vx: 0, vy: 0, onGround: false, timer: 0, speed: 1.0, jump: -6.8 };
     let running = false;
     let collected = 0;
+    let fails = 0;
     const keys = new Set();
     let charging = false;
     let jumpCharge = 0;
@@ -76,6 +77,12 @@ const worldWidth = 520;
       collected = 0;
       colorTimer = 0;
       win.classList.add('hidden');
+      if (fails >= 5) {
+        win.textContent = "别再玩了，快去工作吧";
+        win.classList.remove('hidden');
+      } else {
+        win.textContent = "“Thanks for playing my game.”";
+      }
       spawnChunk();
       draw();
     }
@@ -167,6 +174,7 @@ const worldWidth = 520;
             e.alive = false;
             player.vy = jump * 0.6;
           } else {
+            fails += 1;
             reset();
           }
         }
@@ -212,6 +220,7 @@ const worldWidth = 520;
         }
         boss.timer -= 1;
         if (rectsOverlap(player, boss)) {
+          fails += 1;
           reset();
         }
         if (boss.timer <= 0) {

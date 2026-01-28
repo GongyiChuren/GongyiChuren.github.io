@@ -13,7 +13,7 @@ const gameHeight = 140;
 const worldWidth = 520;
 ---
 
-<WidgetLayout id="graph-game" name="跳台小游戏" class={className} style={style}>
+<WidgetLayout id="graph-game" name="Game console" class={className} style={style}>
   <div class="relative">
     <canvas id="mini-platformer" width={gameWidth} height={gameHeight} class="w-full h-[160px] rounded-lg border border-black/10 dark:border-white/15 bg-white/60 dark:bg-black/30"></canvas>
     <div class="mt-2 flex gap-2">
@@ -41,7 +41,8 @@ const worldWidth = 520;
     const player = { x: 16, y: 96, w: 10, h: 12, vx: 0, vy: 0, onGround: false };
     const gravity = 0.6;
     const speed = 1.6;
-    const jump = -7.2;
+    const jump = -6.8;
+    const maxJump = -9.6;
     let platforms = [
       { x: 0, y: 120, w: 400, h: 20 },
     ];
@@ -51,7 +52,9 @@ const worldWidth = 520;
     let running = false;
     let collected = 0;
     const keys = new Set();
-    let jumpPressed = false;
+    let charging = false;
+    let jumpCharge = 0;
+    const maxCharge = 36;
     let cameraX = 0;
     let worldEnd = 400;
     let colorTimer = 0;
@@ -104,14 +107,8 @@ const worldWidth = 520;
       player.vx = 0;
       if (keys.has('ArrowLeft') || keys.has('a')) player.vx = -speed;
       if (keys.has('ArrowRight') || keys.has('d')) player.vx = speed;
-      const wantsJump = keys.has('ArrowUp') || keys.has('w') || keys.has(' ');
-      if (wantsJump && player.onGround && !jumpPressed) {
-        player.vy = jump;
-        player.onGround = false;
-        jumpPressed = true;
-      }
-      if (!wantsJump) {
-        jumpPressed = false;
+      if (charging && player.onGround) {
+        jumpCharge = Math.min(maxCharge, jumpCharge + 1);
       }
 
       player.vy += gravity;
@@ -130,6 +127,11 @@ const worldWidth = 520;
           }
         }
       });
+
+      if (!player.onGround) {
+        charging = false;
+        jumpCharge = 0;
+      }
 
       coins.forEach(c => {
         if (!c.got) {
@@ -283,8 +285,29 @@ const worldWidth = 520;
       reset();
     });
 
-    window.addEventListener('keydown', (e) => keys.add(e.key));
-    window.addEventListener('keyup', (e) => keys.delete(e.key));
+    function isJumpKey(key) {
+      return key === 'ArrowUp' || key === 'w' || key === ' ' || key === 'W';
+    }
+
+    window.addEventListener('keydown', (e) => {
+      keys.add(e.key);
+      if (isJumpKey(e.key) && player.onGround && !charging) {
+        charging = true;
+        jumpCharge = 0;
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      keys.delete(e.key);
+      if (isJumpKey(e.key) && charging && player.onGround) {
+        const ratio = Math.min(1, jumpCharge / maxCharge);
+        player.vy = jump + (maxJump - jump) * ratio;
+        player.onGround = false;
+      }
+      if (isJumpKey(e.key)) {
+        charging = false;
+        jumpCharge = 0;
+      }
+    });
 
     reset();
   })();

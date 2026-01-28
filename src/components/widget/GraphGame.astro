@@ -156,7 +156,7 @@ const worldWidth = 520;
             if (collected % 5 === 0) {
               colorTimer = 180;
             }
-            if (collected >= 25) {
+            if (collected >= 1) {
               running = false;
               win.classList.remove('hidden');
             }
@@ -189,7 +189,7 @@ const worldWidth = 520;
         boss.h = boss.tier === 2 ? 42 : 30;
         boss.speed = boss.tier === 2 ? 1.35 : 1.0;
         boss.jump = boss.tier === 2 ? -7.8 : -6.8;
-        boss.x = Math.max(0, player.x - 40);
+        boss.x = Math.max(0, cameraX - 30);
         boss.y = 120 - boss.h;
         boss.vy = 0;
         boss.onGround = false;
@@ -300,7 +300,7 @@ const worldWidth = 520;
 
       ctx.restore();
 
-      if (!running && collected >= 25) {
+      if (!running && collected >= 1) {
         ctx.save();
         ctx.fillStyle = '#22d3ee';
         ctx.shadowColor = 'rgba(34, 211, 238, 0.9)';

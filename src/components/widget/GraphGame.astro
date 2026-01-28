@@ -68,6 +68,8 @@ const worldWidth = 520;
       const baseX = worldEnd;
       const gap = 60 + Math.random() * 40;
       const platCount = 3 + Math.floor(Math.random() * 2);
+      const chunkLen = platCount * gap + 120;
+      platforms.push({ x: baseX, y: 120, w: chunkLen, h: 20 });
       for (let i = 0; i < platCount; i++) {
         const w = 40 + Math.random() * 50;
         const h = 8;
@@ -81,7 +83,7 @@ const worldWidth = 520;
           enemies.push({ x: x + 10, y: 108, w: 10, h: 10, dir: Math.random() > 0.5 ? 1 : -1, min: x - 10, max: x + w + 10, alive: true });
         }
       }
-      worldEnd = baseX + platCount * gap + 120;
+      worldEnd = baseX + chunkLen;
       platforms = platforms.filter(p => p.x + p.w > cameraX - 200);
       coins = coins.filter(c => c.x > cameraX - 200);
       enemies = enemies.filter(e => e.x > cameraX - 200);
@@ -110,7 +112,6 @@ const worldWidth = 520;
       player.y += player.vy;
 
       if (player.x < 0) player.x = 0;
-      if (player.x + player.w > worldWidth) player.x = worldWidth - player.w;
 
       player.onGround = false;
       platforms.forEach(p => {
@@ -152,8 +153,8 @@ const worldWidth = 520;
         }
       });
 
-      cameraX = Math.max(0, Math.min(worldWidth - gameWidth, player.x - gameWidth / 2));
-      if (player.x + gameWidth > worldEnd - 120) {
+      cameraX = Math.max(0, player.x - gameWidth / 2);
+      if (player.x + gameWidth > worldEnd - 200) {
         spawnChunk();
       }
       if (colorTimer > 0) colorTimer -= 1;

@@ -14,21 +14,12 @@ const worldWidth = 520;
 ---
 
 <WidgetLayout id="graph-game" name="跳台小游戏" class={className} style={style}>
-  <div class="text-sm text-neutral-600 dark:text-neutral-300 mb-2">
-    小跳台：方向键移动，空格跳跃，吃到 3 枚金币触发彩蛋（有小怪）
-  </div>
   <div class="relative">
     <canvas id="mini-platformer" width={gameWidth} height={gameHeight} class="w-full h-[160px] rounded-lg border border-black/10 dark:border-white/15 bg-white/60 dark:bg-black/30"></canvas>
-    <div id="mini-hint" class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-      0 / 3 金币
-    </div>
     <div class="mt-2 flex gap-2">
       <button id="mini-start" class="btn-plain h-8 px-3 rounded-lg text-xs">开始</button>
       <button id="mini-pause" class="btn-plain h-8 px-3 rounded-lg text-xs">暂停</button>
       <button id="mini-reset" class="btn-plain h-8 px-3 rounded-lg text-xs">重开</button>
-    </div>
-    <div id="mini-easter" class="mt-2 text-xs text-[var(--primary)] hidden">
-      通关：你完成了一次最小刷题热身！
     </div>
   </div>
 </WidgetLayout>
@@ -36,12 +27,10 @@ const worldWidth = 520;
 <script is:inline define:vars={{ gameWidth, gameHeight, worldWidth }}>
   (function() {
     const canvas = document.getElementById('mini-platformer');
-    const hint = document.getElementById('mini-hint');
     const startBtn = document.getElementById('mini-start');
     const pauseBtn = document.getElementById('mini-pause');
     const resetBtn = document.getElementById('mini-reset');
-    const easter = document.getElementById('mini-easter');
-    if (!canvas || !hint || !startBtn || !pauseBtn || !resetBtn || !easter) return;
+    if (!canvas || !startBtn || !pauseBtn || !resetBtn) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -49,47 +38,52 @@ const worldWidth = 520;
     const gravity = 0.6;
     const speed = 1.6;
     const jump = -7.2;
-    const platforms = [
-      { x: 0, y: 120, w: worldWidth, h: 20 },
-      { x: 40, y: 90, w: 50, h: 8 },
-      { x: 120, y: 70, w: 60, h: 8 },
-      { x: 190, y: 100, w: 50, h: 8 },
-      { x: 280, y: 88, w: 60, h: 8 },
-      { x: 360, y: 65, w: 70, h: 8 },
-      { x: 450, y: 100, w: 50, h: 8 },
+    let platforms = [
+      { x: 0, y: 120, w: 400, h: 20 },
     ];
-    let coins = [
-      { x: 55, y: 75, r: 4, got: false },
-      { x: 145, y: 55, r: 4, got: false },
-      { x: 210, y: 85, r: 4, got: false },
-      { x: 305, y: 73, r: 4, got: false },
-      { x: 392, y: 50, r: 4, got: false },
-    ];
-    let enemies = [
-      { x: 90, y: 108, w: 10, h: 10, dir: 1, min: 70, max: 140 },
-      { x: 260, y: 108, w: 10, h: 10, dir: -1, min: 230, max: 320 },
-      { x: 410, y: 108, w: 10, h: 10, dir: 1, min: 380, max: 470 },
-    ];
+    let coins = [];
+    let enemies = [];
     let running = false;
     let collected = 0;
     const keys = new Set();
     let cameraX = 0;
+    let worldEnd = 400;
+    let colorTimer = 0;
+    const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7'];
 
     function reset() {
       player.x = 16; player.y = 96; player.vx = 0; player.vy = 0; player.onGround = false;
-      coins = coins.map(c => ({ ...c, got: false }));
-      enemies = enemies.map(e => ({ ...e, x: e.x, dir: e.dir }));
+      platforms = [{ x: 0, y: 120, w: 400, h: 20 }];
+      coins = [];
+      enemies = [];
+      worldEnd = 400;
       collected = 0;
-      easter.classList.add('hidden');
-      updateHint();
+      colorTimer = 0;
+      spawnChunk();
       draw();
     }
 
-    function updateHint() {
-      hint.textContent = `${collected} / 3 金币`;
-      if (collected >= 3) {
-        easter.classList.remove('hidden');
+    function spawnChunk() {
+      const baseX = worldEnd;
+      const gap = 60 + Math.random() * 40;
+      const platCount = 3 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < platCount; i++) {
+        const w = 40 + Math.random() * 50;
+        const h = 8;
+        const y = 70 + Math.random() * 40;
+        const x = baseX + i * gap;
+        platforms.push({ x, y, w, h });
+        if (Math.random() > 0.3) {
+          coins.push({ x: x + w / 2, y: y - 12, r: 4, got: false });
+        }
+        if (Math.random() > 0.6) {
+          enemies.push({ x: x + 10, y: 108, w: 10, h: 10, dir: Math.random() > 0.5 ? 1 : -1, min: x - 10, max: x + w + 10, alive: true });
+        }
       }
+      worldEnd = baseX + platCount * gap + 120;
+      platforms = platforms.filter(p => p.x + p.w > cameraX - 200);
+      coins = coins.filter(c => c.x > cameraX - 200);
+      enemies = enemies.filter(e => e.x > cameraX - 200);
     }
 
     function rectsOverlap(a, b) {
@@ -130,20 +124,33 @@ const worldWidth = 520;
           if (Math.hypot(dx, dy) < c.r + 6) {
             c.got = true;
             collected += 1;
-            updateHint();
+            if (collected % 5 === 0) {
+              colorTimer = 180;
+            }
           }
         }
       });
 
       enemies.forEach(e => {
+        if (!e.alive) return;
         e.x += e.dir * 0.6;
         if (e.x < e.min || e.x > e.max) e.dir *= -1;
         if (rectsOverlap(player, e)) {
-          reset();
+          const playerBottom = player.y + player.h;
+          if (player.vy > 0 && playerBottom - player.vy <= e.y + 2) {
+            e.alive = false;
+            player.vy = jump * 0.6;
+          } else {
+            reset();
+          }
         }
       });
 
       cameraX = Math.max(0, Math.min(worldWidth - gameWidth, player.x - gameWidth / 2));
+      if (player.x + gameWidth > worldEnd - 120) {
+        spawnChunk();
+      }
+      if (colorTimer > 0) colorTimer -= 1;
     }
 
     function draw() {
@@ -162,6 +169,7 @@ const worldWidth = 520;
       });
 
       enemies.forEach(e => {
+        if (!e.alive) return;
         ctx.fillStyle = 'rgba(239, 68, 68, 0.9)';
         ctx.fillRect(e.x, e.y, e.w, e.h);
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -170,7 +178,8 @@ const worldWidth = 520;
       });
 
       // pixel character
-      ctx.fillStyle = '#1d4ed8';
+      const color = colorTimer > 0 ? colors[Math.floor((colorTimer / 10) % colors.length)] : '#1d4ed8';
+      ctx.fillStyle = color;
       ctx.fillRect(player.x, player.y, player.w, player.h);
       ctx.fillStyle = '#f59e0b';
       ctx.fillRect(player.x + 2, player.y - 2, 6, 4);

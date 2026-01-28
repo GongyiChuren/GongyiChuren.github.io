@@ -52,6 +52,9 @@ const worldWidth = 520;
     let running = false;
     let collected = 0;
     let fails = 0;
+    let lives = 2;
+    let showFailGlow = false;
+    let failGlowTimer = 0;
     const keys = new Set();
     let charging = false;
     let jumpCharge = 0;
@@ -75,6 +78,10 @@ const worldWidth = 520;
       boss = { active: false, tier: 0, x: 0, y: 90, w: 28, h: 28, vx: 0, vy: 0, onGround: false, timer: 0, speed: 0.85, jump: -6.2 };
       worldEnd = 400;
       collected = 0;
+      lives = 2;
+      fails = 0;
+      showFailGlow = false;
+      failGlowTimer = 0;
       colorTimer = 0;
       win.classList.add('hidden');
       if (fails >= 5) {
@@ -176,8 +183,7 @@ const worldWidth = 520;
             e.alive = false;
             player.vy = jump * 0.6;
           } else {
-            fails += 1;
-            reset();
+            handleDeath();
           }
         }
       });
@@ -222,8 +228,7 @@ const worldWidth = 520;
         }
         boss.timer -= 1;
         if (rectsOverlap(player, boss)) {
-          fails += 1;
-          reset();
+          handleDeath();
         }
         if (boss.timer <= 0) {
           boss.active = false;
@@ -312,6 +317,21 @@ const worldWidth = 520;
         ctx.fillText('Thanks for playing my game.', gameWidth / 2, 24);
         ctx.restore();
       }
+
+      if (showFailGlow && failGlowTimer > 0) {
+        ctx.save();
+        ctx.fillStyle = '#f97316';
+        ctx.shadowColor = 'rgba(249, 115, 22, 0.9)';
+        ctx.shadowBlur = 18;
+        ctx.font = 'bold 28px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('菜', gameWidth / 2, 62);
+        ctx.restore();
+        failGlowTimer -= 1;
+        if (failGlowTimer <= 0) {
+          showFailGlow = false;
+        }
+      }
     }
 
     function loop() {
@@ -379,6 +399,21 @@ const worldWidth = 520;
     }
 
     reset();
+
+    function handleDeath() {
+      lives -= 1;
+      if (lives > 0) {
+        player.x = Math.max(cameraX + 20, 16);
+        player.y = 96;
+        player.vx = 0;
+        player.vy = 0;
+        showFailGlow = true;
+        failGlowTimer = 140;
+      } else {
+        fails += 1;
+        reset();
+      }
+    }
   })();
 </script>
 

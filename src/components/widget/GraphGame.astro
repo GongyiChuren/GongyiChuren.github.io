@@ -44,10 +44,12 @@ const worldWidth = 520;
     const jump = -7.6;
     const maxJump = -10.4;
     let platforms = [
-      { x: 0, y: 120, w: 400, h: 20 },
+      { x: 0, y: 120, w: 400, h: 20, type: 'solid', broken: false, drop: 0, t: 0, dir: 1, ox: 0 },
     ];
     let coins = [];
     let enemies = [];
+    let springs = [];
+    let meteors = [];
     let boss = { active: false, tier: 0, x: 0, y: 90, w: 28, h: 28, vx: 0, vy: 0, onGround: false, timer: 0, speed: 0.85, jump: -6.2 };
     let running = false;
     let collected = 0;
@@ -69,12 +71,20 @@ const worldWidth = 520;
       r: Math.random() * 0.9 + 0.3,
       a: Math.random() * 0.5 + 0.4
     }));
+    const nebulas = Array.from({ length: 5 }, () => ({
+      x: Math.random() * (gameWidth * 3),
+      y: Math.random() * (gameHeight * 0.6),
+      r: 18 + Math.random() * 30,
+      a: Math.random() * 0.2 + 0.08
+    }));
 
     function reset() {
       player.x = 16; player.y = 96; player.vx = 0; player.vy = 0; player.onGround = false;
-      platforms = [{ x: 0, y: 120, w: 400, h: 20 }];
+      platforms = [{ x: 0, y: 120, w: 400, h: 20, type: 'solid', broken: false, drop: 0, t: 0, dir: 1, ox: 0 }];
       coins = [];
       enemies = [];
+      springs = [];
+      meteors = [];
       boss = { active: false, tier: 0, x: 0, y: 90, w: 28, h: 28, vx: 0, vy: 0, onGround: false, timer: 0, speed: 0.85, jump: -6.2 };
       worldEnd = 400;
       collected = 0;
@@ -86,6 +96,9 @@ const worldWidth = 520;
       win.classList.add('hidden');
       if (fails >= 5) {
         win.textContent = "别再玩了，快去工作吧";
+        win.classList.remove('hidden');
+      } else if (fails >= 2) {
+        win.textContent = "Game Over";
         win.classList.remove('hidden');
       } else {
         win.textContent = "“Thanks for playing my game.”";
@@ -99,13 +112,17 @@ const worldWidth = 520;
       const gap = 60 + Math.random() * 40;
       const platCount = 3 + Math.floor(Math.random() * 2);
       const chunkLen = platCount * gap + 120;
-      platforms.push({ x: baseX, y: 120, w: chunkLen, h: 20 });
+      platforms.push({ x: baseX, y: 120, w: chunkLen, h: 20, type: 'solid', broken: false, drop: 0, t: 0, dir: 1, ox: baseX });
       for (let i = 0; i < platCount; i++) {
         const w = 40 + Math.random() * 50;
         const h = 8;
         const y = 70 + Math.random() * 40;
         const x = baseX + i * gap;
-        platforms.push({ x, y, w, h });
+        const typeRoll = Math.random();
+        let type = 'solid';
+        if (typeRoll > 0.75) type = 'slide';
+        if (typeRoll > 0.9) type = 'break';
+        platforms.push({ x, y, w, h, type, t: 0, dir: Math.random() > 0.5 ? 1 : -1, ox: x, broken: false, drop: 0 });
         if (Math.random() > 0.3) {
           const isBonus = Math.random() > 0.82;
           coins.push({ x: x + w / 2, y: y - 12, r: 4, got: false, bonus: isBonus });
@@ -113,11 +130,15 @@ const worldWidth = 520;
         if (Math.random() > 0.6) {
           enemies.push({ x: x + 10, y: 108, w: 10, h: 10, dir: Math.random() > 0.5 ? 1 : -1, min: x - 10, max: x + w + 10, alive: true });
         }
+        if (Math.random() > 0.75) {
+          springs.push({ x: x + w / 2 - 4, y: y - 6, w: 8, h: 6 });
+        }
       }
       worldEnd = baseX + chunkLen;
       platforms = platforms.filter(p => p.x + p.w > cameraX - 200);
       coins = coins.filter(c => c.x > cameraX - 200);
       enemies = enemies.filter(e => e.x > cameraX - 200);
+      springs = springs.filter(s => s.x > cameraX - 200);
     }
 
     function rectsOverlap(a, b) {
@@ -140,11 +161,17 @@ const worldWidth = 520;
 
       player.onGround = false;
       platforms.forEach(p => {
-        if (rectsOverlap(player, p)) {
-          if (player.vy > 0 && player.y + player.h - player.vy <= p.y) {
-            player.y = p.y - player.h;
+        const py = p.y + (p.drop || 0);
+        if (p.type === 'break' && p.broken && p.drop > 2) return;
+        const hit = rectsOverlap(player, { x: p.x, y: py, w: p.w, h: p.h });
+        if (hit) {
+          if (player.vy > 0 && player.y + player.h - player.vy <= py) {
+            player.y = py - player.h;
             player.vy = 0;
             player.onGround = true;
+            if (p.type === 'break') {
+              p.broken = true;
+            }
           }
         }
       });
@@ -175,7 +202,7 @@ const worldWidth = 520;
 
       enemies.forEach(e => {
         if (!e.alive) return;
-        e.x += e.dir * 0.35;
+        e.x += e.dir * 0.25;
         if (e.x < e.min || e.x > e.max) e.dir *= -1;
         if (rectsOverlap(player, e)) {
           const playerBottom = player.y + player.h;
@@ -235,6 +262,25 @@ const worldWidth = 520;
         }
       }
 
+      platforms.forEach(p => {
+        if (p.type === 'slide') {
+          p.t += 0.02;
+          p.x = p.ox + Math.sin(p.t) * 16 * p.dir;
+        }
+        if (p.type === 'break' && p.broken) {
+          p.drop += 0.9;
+        }
+      });
+
+      meteors.forEach(m => {
+        m.x -= m.vx;
+        m.y += m.vy;
+      });
+      meteors = meteors.filter(m => m.x > cameraX - 80 && m.y < gameHeight + 40);
+      if (Math.random() < 0.015) {
+        meteors.push({ x: cameraX + gameWidth + 20, y: 10 + Math.random() * 30, vx: 2 + Math.random() * 1.5, vy: 1 + Math.random() * 1.5 });
+      }
+
       cameraX = Math.max(0, player.x - gameWidth / 2);
       if (player.x + gameWidth > worldEnd - 200) {
         spawnChunk();
@@ -251,6 +297,12 @@ const worldWidth = 520;
       ctx.fillRect(0, 0, gameWidth, gameHeight);
       ctx.save();
       ctx.translate(-cameraX * 0.2, 0);
+      nebulas.forEach(n => {
+        ctx.fillStyle = `rgba(99,102,241,${n.a})`;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
       stars.forEach(s => {
         ctx.fillStyle = `rgba(255,255,255,${s.a})`;
         ctx.beginPath();
@@ -262,13 +314,16 @@ const worldWidth = 520;
       ctx.translate(-cameraX, 0);
 
       platforms.forEach(p => {
-        ctx.shadowColor = 'rgba(56, 189, 248, 0.65)';
-        ctx.shadowBlur = 12;
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
-        ctx.fillRect(p.x, p.y, p.w, p.h);
+        const y = p.y + (p.drop || 0);
+        ctx.shadowColor = 'rgba(139, 92, 246, 0.7)';
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = p.type === 'break' ? 'rgba(248, 113, 113, 0.2)' : 'rgba(129, 140, 248, 0.22)';
+        ctx.fillRect(p.x, y, p.w, p.h);
         ctx.shadowBlur = 0;
-        ctx.fillStyle = 'rgba(186, 230, 253, 0.95)';
-        ctx.fillRect(p.x, p.y, p.w, 1.5);
+        ctx.fillStyle = 'rgba(224, 231, 255, 0.9)';
+        ctx.fillRect(p.x, y, p.w, 1.8);
+        ctx.fillStyle = 'rgba(99, 102, 241, 0.35)';
+        ctx.fillRect(p.x + 4, y + 3, p.w - 8, 1);
       });
       coins.forEach(c => {
         if (c.got) return;
@@ -276,6 +331,22 @@ const worldWidth = 520;
         ctx.fillStyle = c.bonus ? 'rgba(236, 72, 153, 0.95)' : 'rgba(255, 193, 7, 0.9)';
         ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
         ctx.fill();
+      });
+
+      springs.forEach(s => {
+        ctx.fillStyle = 'rgba(34, 211, 238, 0.9)';
+        ctx.fillRect(s.x, s.y, s.w, s.h);
+        ctx.fillStyle = 'rgba(186, 230, 253, 0.9)';
+        ctx.fillRect(s.x + 2, s.y + 1, s.w - 4, 2);
+      });
+
+      meteors.forEach(m => {
+        ctx.strokeStyle = 'rgba(125, 211, 252, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(m.x - 10, m.y - 6);
+        ctx.stroke();
       });
 
       enemies.forEach(e => {
@@ -305,6 +376,15 @@ const worldWidth = 520;
       ctx.fillRect(player.x + 2, player.y + 4, 2, 2);
       ctx.fillRect(player.x + 6, player.y + 4, 2, 2);
 
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`金币 ${collected}`, 8, 14);
+      ctx.textAlign = 'right';
+      ctx.fillText(`命 ${lives}`, gameWidth - 8, 14);
       ctx.restore();
 
       if (!running && collected >= 20) {
@@ -450,3 +530,9 @@ const worldWidth = 520;
     }
   }
 </style>
+      springs.forEach(s => {
+        if (rectsOverlap(player, s) && player.vy > 0) {
+          player.vy = maxJump - 1.2;
+          player.onGround = false;
+        }
+      });

@@ -530,9 +530,3 @@ const worldWidth = 520;
     }
   }
 </style>
-      springs.forEach(s => {
-        if (rectsOverlap(player, s) && player.vy > 0) {
-          player.vy = maxJump - 1.2;
-          player.onGround = false;
-        }
-      });

@@ -17,9 +17,9 @@ const worldWidth = 520;
   <div class="relative">
     <canvas id="mini-platformer" width={gameWidth} height={gameHeight} class="w-full h-[160px] rounded-lg border border-black/10 dark:border-white/15 bg-white/60 dark:bg-black/30"></canvas>
     <div class="mt-2 flex gap-2">
-      <button id="mini-start" class="btn-plain h-8 px-3 rounded-lg text-xs">开始</button>
-      <button id="mini-pause" class="btn-plain h-8 px-3 rounded-lg text-xs">暂停</button>
-      <button id="mini-reset" class="btn-plain h-8 px-3 rounded-lg text-xs">重开</button>
+      <button id="mini-start" class="h-4 w-4 rounded-full bg-[#34C759] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_2px_rgba(0,0,0,0.12)] ring-1 ring-black/10 hover:brightness-110 transition" title="开始"></button>
+      <button id="mini-pause" class="h-4 w-4 rounded-full bg-[#FFCC00] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_2px_rgba(0,0,0,0.12)] ring-1 ring-black/10 hover:brightness-110 transition" title="暂停"></button>
+      <button id="mini-reset" class="h-4 w-4 rounded-full bg-[#FF3B30] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_2px_rgba(0,0,0,0.12)] ring-1 ring-black/10 hover:brightness-110 transition" title="重开"></button>
     </div>
     <div id="mini-win" class="mt-2 text-xs text-[var(--primary)] hidden">
       “Thanks for playing my game.”
@@ -59,6 +59,12 @@ const worldWidth = 520;
     let worldEnd = 400;
     let colorTimer = 0;
     const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7'];
+    const stars = Array.from({ length: 60 }, () => ({
+      x: Math.random() * (gameWidth * 3),
+      y: Math.random() * (gameHeight * 0.75),
+      r: Math.random() * 0.9 + 0.3,
+      a: Math.random() * 0.5 + 0.4
+    }));
 
     function reset() {
       player.x = 16; player.y = 96; player.vx = 0; player.vy = 0; player.onGround = false;
@@ -222,11 +228,32 @@ const worldWidth = 520;
 
     function draw() {
       ctx.clearRect(0, 0, gameWidth, gameHeight);
+      const gradient = ctx.createLinearGradient(0, 0, 0, gameHeight);
+      gradient.addColorStop(0, '#0b1022');
+      gradient.addColorStop(1, '#111827');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, gameWidth, gameHeight);
+      ctx.save();
+      ctx.translate(-cameraX * 0.2, 0);
+      stars.forEach(s => {
+        ctx.fillStyle = `rgba(255,255,255,${s.a})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
       ctx.save();
       ctx.translate(-cameraX, 0);
 
-      ctx.fillStyle = 'rgba(0,0,0,0.1)';
-      platforms.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
+      platforms.forEach(p => {
+        ctx.shadowColor = 'rgba(56, 189, 248, 0.45)';
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(186, 230, 253, 0.75)';
+        ctx.fillRect(p.x, p.y, p.w, 1.5);
+      });
       coins.forEach(c => {
         if (c.got) return;
         ctx.beginPath();

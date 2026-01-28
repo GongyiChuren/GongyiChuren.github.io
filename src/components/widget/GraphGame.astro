@@ -46,6 +46,7 @@ const worldWidth = 520;
     let running = false;
     let collected = 0;
     const keys = new Set();
+    let jumpPressed = false;
     let cameraX = 0;
     let worldEnd = 400;
     let colorTimer = 0;
@@ -94,9 +95,14 @@ const worldWidth = 520;
       player.vx = 0;
       if (keys.has('ArrowLeft') || keys.has('a')) player.vx = -speed;
       if (keys.has('ArrowRight') || keys.has('d')) player.vx = speed;
-      if ((keys.has('ArrowUp') || keys.has('w') || keys.has(' ')) && player.onGround) {
+      const wantsJump = keys.has('ArrowUp') || keys.has('w') || keys.has(' ');
+      if (wantsJump && player.onGround && !jumpPressed) {
         player.vy = jump;
         player.onGround = false;
+        jumpPressed = true;
+      }
+      if (!wantsJump) {
+        jumpPressed = false;
       }
 
       player.vy += gravity;

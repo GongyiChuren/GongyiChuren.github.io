@@ -220,6 +220,14 @@ const postUrlPrefix = url("/posts/");
     }
   }
 
+  function forceRenderCalendar() {
+    renderCalendar();
+    const grid = document.getElementById('calendar-grid');
+    if (grid && grid.children.length === 0 && currentView === 'day') {
+      renderDayView();
+    }
+  }
+
   function updateHeader() {
     const navDisplay = document.getElementById('current-month-display');
     const resetBtn = document.getElementById('reset-month-btn');
@@ -509,7 +517,7 @@ const postUrlPrefix = url("/posts/");
         postDateMap = {};
         allPostsData = [];
         availableYears = [new Date().getFullYear()];
-        renderCalendar();
+        forceRenderCalendar();
       } else {
         fetchData();
       }
@@ -593,11 +601,22 @@ const postUrlPrefix = url("/posts/");
   }
   
   // 页面加载时渲染日历
-  initCalendar();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      initCalendar();
+      requestAnimationFrame(forceRenderCalendar);
+    });
+  } else {
+    initCalendar();
+    requestAnimationFrame(forceRenderCalendar);
+  }
 
   // 页面切换时重新渲染
   document.addEventListener("swup:contentReplaced", () => {
-    setTimeout(initCalendar, 100);
+    setTimeout(() => {
+      initCalendar();
+      forceRenderCalendar();
+    }, 100);
   });
 </script>
 

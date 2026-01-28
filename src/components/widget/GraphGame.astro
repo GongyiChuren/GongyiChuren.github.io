@@ -8,109 +8,202 @@ interface Props {
 
 const { class: className, style } = Astro.props;
 
-const nodes = [
-	{ id: "a", x: 20, y: 20 },
-	{ id: "b", x: 180, y: 20 },
-	{ id: "c", x: 20, y: 140 },
-	{ id: "d", x: 180, y: 140 },
-	{ id: "e", x: 100, y: 80 },
-];
+const gameWidth = 260;
+const gameHeight = 140;
+const worldWidth = 520;
 ---
 
-<WidgetLayout id="graph-game" name="连线小游戏" class={className} style={style}>
+<WidgetLayout id="graph-game" name="跳台小游戏" class={className} style={style}>
   <div class="text-sm text-neutral-600 dark:text-neutral-300 mb-2">
-    连线小游戏：点击两个点连接，连 5 条触发彩蛋
+    小跳台：方向键移动，空格跳跃，吃到 3 枚金币触发彩蛋（有小怪）
   </div>
   <div class="relative">
-    <svg id="graph-game-svg" viewBox="0 0 200 160" class="w-full h-[160px] rounded-lg border border-black/10 dark:border-white/15 bg-white/60 dark:bg-black/30">
-      <g id="graph-game-edges"></g>
-      {nodes.map((n) => (
-        <g class="graph-node" data-node={n.id} transform={`translate(${n.x}, ${n.y})`}>
-          <circle r="8" class="fill-[var(--primary)]/80" />
-          <circle r="4" class="fill-white/90" />
-        </g>
-      ))}
-    </svg>
-    <div id="graph-game-hint" class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-      0 / 5 已连
+    <canvas id="mini-platformer" width={gameWidth} height={gameHeight} class="w-full h-[160px] rounded-lg border border-black/10 dark:border-white/15 bg-white/60 dark:bg-black/30"></canvas>
+    <div id="mini-hint" class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+      0 / 3 金币
     </div>
-    <button id="graph-game-reset" class="mt-2 btn-plain h-8 px-3 rounded-lg text-xs">重置</button>
-    <div id="graph-game-easter" class="mt-2 text-xs text-[var(--primary)] hidden">
-      连接成功：你已经构建了一张最小可用图！
+    <div class="mt-2 flex gap-2">
+      <button id="mini-start" class="btn-plain h-8 px-3 rounded-lg text-xs">开始</button>
+      <button id="mini-pause" class="btn-plain h-8 px-3 rounded-lg text-xs">暂停</button>
+      <button id="mini-reset" class="btn-plain h-8 px-3 rounded-lg text-xs">重开</button>
+    </div>
+    <div id="mini-easter" class="mt-2 text-xs text-[var(--primary)] hidden">
+      通关：你完成了一次最小刷题热身！
     </div>
   </div>
 </WidgetLayout>
 
-<script is:inline define:vars={{ nodes }}>
+<script is:inline define:vars={{ gameWidth, gameHeight, worldWidth }}>
   (function() {
-    const svg = document.getElementById('graph-game-svg');
-    const edgesLayer = document.getElementById('graph-game-edges');
-    const hint = document.getElementById('graph-game-hint');
-    const resetBtn = document.getElementById('graph-game-reset');
-    const easter = document.getElementById('graph-game-easter');
-    if (!svg || !edgesLayer || !hint || !resetBtn || !easter) return;
+    const canvas = document.getElementById('mini-platformer');
+    const hint = document.getElementById('mini-hint');
+    const startBtn = document.getElementById('mini-start');
+    const pauseBtn = document.getElementById('mini-pause');
+    const resetBtn = document.getElementById('mini-reset');
+    const easter = document.getElementById('mini-easter');
+    if (!canvas || !hint || !startBtn || !pauseBtn || !resetBtn || !easter) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    let selected = null;
-    let edges = new Set();
+    const player = { x: 16, y: 96, w: 10, h: 12, vx: 0, vy: 0, onGround: false };
+    const gravity = 0.6;
+    const speed = 1.6;
+    const jump = -7.2;
+    const platforms = [
+      { x: 0, y: 120, w: worldWidth, h: 20 },
+      { x: 40, y: 90, w: 50, h: 8 },
+      { x: 120, y: 70, w: 60, h: 8 },
+      { x: 190, y: 100, w: 50, h: 8 },
+      { x: 280, y: 88, w: 60, h: 8 },
+      { x: 360, y: 65, w: 70, h: 8 },
+      { x: 450, y: 100, w: 50, h: 8 },
+    ];
+    let coins = [
+      { x: 55, y: 75, r: 4, got: false },
+      { x: 145, y: 55, r: 4, got: false },
+      { x: 210, y: 85, r: 4, got: false },
+      { x: 305, y: 73, r: 4, got: false },
+      { x: 392, y: 50, r: 4, got: false },
+    ];
+    let enemies = [
+      { x: 90, y: 108, w: 10, h: 10, dir: 1, min: 70, max: 140 },
+      { x: 260, y: 108, w: 10, h: 10, dir: -1, min: 230, max: 320 },
+      { x: 410, y: 108, w: 10, h: 10, dir: 1, min: 380, max: 470 },
+    ];
+    let running = false;
+    let collected = 0;
+    const keys = new Set();
+    let cameraX = 0;
 
-    function edgeKey(a, b) {
-      return [a, b].sort().join('-');
+    function reset() {
+      player.x = 16; player.y = 96; player.vx = 0; player.vy = 0; player.onGround = false;
+      coins = coins.map(c => ({ ...c, got: false }));
+      enemies = enemies.map(e => ({ ...e, x: e.x, dir: e.dir }));
+      collected = 0;
+      easter.classList.add('hidden');
+      updateHint();
+      draw();
     }
 
     function updateHint() {
-      const count = edges.size;
-      hint.textContent = `${count} / 5 已连`;
-      if (count >= 5) {
+      hint.textContent = `${collected} / 3 金币`;
+      if (collected >= 3) {
         easter.classList.remove('hidden');
-      } else {
-        easter.classList.add('hidden');
       }
     }
 
-    function reset() {
-      edges.clear();
-      edgesLayer.innerHTML = '';
-      selected = null;
-      updateHint();
+    function rectsOverlap(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
     }
 
-    function connect(a, b) {
-      const key = edgeKey(a, b);
-      if (edges.has(key)) return;
-      edges.add(key);
-      const na = nodes.find(n => n.id === a);
-      const nb = nodes.find(n => n.id === b);
-      if (!na || !nb) return;
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', na.x);
-      line.setAttribute('y1', na.y);
-      line.setAttribute('x2', nb.x);
-      line.setAttribute('y2', nb.y);
-      line.setAttribute('stroke', 'var(--primary)');
-      line.setAttribute('stroke-width', '2');
-      line.setAttribute('stroke-linecap', 'round');
-      edgesLayer.appendChild(line);
-      updateHint();
-    }
+    function update() {
+      player.vx = 0;
+      if (keys.has('ArrowLeft') || keys.has('a')) player.vx = -speed;
+      if (keys.has('ArrowRight') || keys.has('d')) player.vx = speed;
+      if ((keys.has('ArrowUp') || keys.has('w') || keys.has(' ')) && player.onGround) {
+        player.vy = jump;
+        player.onGround = false;
+      }
 
-    svg.querySelectorAll('.graph-node').forEach((node) => {
-      node.addEventListener('click', () => {
-        const id = node.getAttribute('data-node');
-        if (!id) return;
-        if (!selected) {
-          selected = id;
-          return;
+      player.vy += gravity;
+      player.x += player.vx;
+      player.y += player.vy;
+
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.w > worldWidth) player.x = worldWidth - player.w;
+
+      player.onGround = false;
+      platforms.forEach(p => {
+        if (rectsOverlap(player, p)) {
+          if (player.vy > 0 && player.y + player.h - player.vy <= p.y) {
+            player.y = p.y - player.h;
+            player.vy = 0;
+            player.onGround = true;
+          }
         }
-        if (selected === id) {
-          selected = null;
-          return;
-        }
-        connect(selected, id);
-        selected = null;
       });
+
+      coins.forEach(c => {
+        if (!c.got) {
+          const dx = player.x + player.w / 2 - c.x;
+          const dy = player.y + player.h / 2 - c.y;
+          if (Math.hypot(dx, dy) < c.r + 6) {
+            c.got = true;
+            collected += 1;
+            updateHint();
+          }
+        }
+      });
+
+      enemies.forEach(e => {
+        e.x += e.dir * 0.6;
+        if (e.x < e.min || e.x > e.max) e.dir *= -1;
+        if (rectsOverlap(player, e)) {
+          reset();
+        }
+      });
+
+      cameraX = Math.max(0, Math.min(worldWidth - gameWidth, player.x - gameWidth / 2));
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, gameWidth, gameHeight);
+      ctx.save();
+      ctx.translate(-cameraX, 0);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      platforms.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
+      coins.forEach(c => {
+        if (c.got) return;
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(255, 193, 7, 0.9)';
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      enemies.forEach(e => {
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.9)';
+        ctx.fillRect(e.x, e.y, e.w, e.h);
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(e.x + 2, e.y + 3, 2, 2);
+        ctx.fillRect(e.x + 6, e.y + 3, 2, 2);
+      });
+
+      // pixel character
+      ctx.fillStyle = '#1d4ed8';
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(player.x + 2, player.y - 2, 6, 4);
+      ctx.fillStyle = '#111827';
+      ctx.fillRect(player.x + 2, player.y + 4, 2, 2);
+      ctx.fillRect(player.x + 6, player.y + 4, 2, 2);
+
+      ctx.restore();
+    }
+
+    function loop() {
+      if (!running) return;
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    startBtn.addEventListener('click', () => {
+      if (running) return;
+      running = true;
+      loop();
+    });
+    pauseBtn.addEventListener('click', () => {
+      running = false;
+    });
+    resetBtn.addEventListener('click', () => {
+      running = false;
+      reset();
     });
 
-    resetBtn.addEventListener('click', reset);
-    updateHint();
+    window.addEventListener('keydown', (e) => keys.add(e.key));
+    window.addEventListener('keyup', (e) => keys.delete(e.key));
+
+    reset();
   })();
 </script>

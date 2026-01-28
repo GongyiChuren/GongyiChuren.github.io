@@ -57,6 +57,7 @@ const worldWidth = 520;
     let lives = 2;
     let showFailGlow = false;
     let failGlowTimer = 0;
+    let gameOver = false;
     const keys = new Set();
     let charging = false;
     let jumpCharge = 0;
@@ -92,6 +93,7 @@ const worldWidth = 520;
       fails = 0;
       showFailGlow = false;
       failGlowTimer = 0;
+      gameOver = false;
       colorTimer = 0;
       win.classList.add('hidden');
       if (fails >= 5) {
@@ -315,10 +317,14 @@ const worldWidth = 520;
 
       platforms.forEach(p => {
         const y = p.y + (p.drop || 0);
-        ctx.shadowColor = 'rgba(139, 92, 246, 0.7)';
-        ctx.shadowBlur = 14;
-        ctx.fillStyle = p.type === 'break' ? 'rgba(248, 113, 113, 0.2)' : 'rgba(129, 140, 248, 0.22)';
+        ctx.shadowColor = 'rgba(139, 92, 246, 0.95)';
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = p.type === 'break' ? 'rgba(248, 113, 113, 0.28)' : 'rgba(129, 140, 248, 0.28)';
         ctx.fillRect(p.x, y, p.w, p.h);
+        ctx.shadowBlur = 24;
+        ctx.globalAlpha = 0.35;
+        ctx.fillRect(p.x - 1, y - 1, p.w + 2, p.h + 2);
+        ctx.globalAlpha = 1;
         ctx.shadowBlur = 0;
         ctx.fillStyle = 'rgba(224, 231, 255, 0.9)';
         ctx.fillRect(p.x, y, p.w, 1.8);
@@ -370,6 +376,15 @@ const worldWidth = 520;
       const color = colorTimer > 0 ? colors[Math.floor((colorTimer / 10) % colors.length)] : '#1d4ed8';
       ctx.fillStyle = color;
       ctx.fillRect(player.x, player.y, player.w, player.h);
+      if (lives === 2 && !player.onGround) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(34, 211, 238, 0.8)';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = 'rgba(34, 211, 238, 0.7)';
+        ctx.fillRect(player.x - 3, player.y + 4, 2, 2);
+        ctx.fillRect(player.x - 6, player.y + 6, 2, 2);
+        ctx.restore();
+      }
       ctx.fillStyle = '#f59e0b';
       ctx.fillRect(player.x + 2, player.y - 2, 6, 4);
       ctx.fillStyle = '#111827';
@@ -379,12 +394,12 @@ const worldWidth = 520;
       ctx.restore();
 
       ctx.save();
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      ctx.font = '10px system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.88)';
+      ctx.font = '11px system-ui, sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`金币 ${collected}`, 8, 14);
+      ctx.fillText(`◉ ${collected}`, 8, 14);
       ctx.textAlign = 'right';
-      ctx.fillText(`命 ${lives}`, gameWidth - 8, 14);
+      ctx.fillText(`♥ ${lives}`, gameWidth - 8, 14);
       ctx.restore();
 
       if (!running && collected >= 20) {
@@ -411,6 +426,19 @@ const worldWidth = 520;
         if (failGlowTimer <= 0) {
           showFailGlow = false;
         }
+      }
+
+      if (gameOver) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
+        ctx.fillRect(0, 0, gameWidth, gameHeight);
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = 'rgba(34, 211, 238, 0.8)';
+        ctx.shadowBlur = 10;
+        ctx.font = 'bold 14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Game Over', gameWidth / 2, 72);
+        ctx.restore();
       }
     }
 
@@ -491,7 +519,9 @@ const worldWidth = 520;
         failGlowTimer = 140;
       } else {
         fails += 1;
-        reset();
+        gameOver = true;
+        running = false;
+        draw();
       }
     }
   })();

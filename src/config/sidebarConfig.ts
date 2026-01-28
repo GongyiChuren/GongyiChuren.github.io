@@ -123,8 +123,8 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			animationDelay: 200,
 		},
 		{
-			// 组件类型：日历组件
-			type: "calendar",
+			// 组件类型：连线小游戏
+			type: "graphGame",
 			// 是否启用该组件
 			enable: true,
 			// 组件显示顺序

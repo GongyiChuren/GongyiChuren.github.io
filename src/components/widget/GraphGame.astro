@@ -1,0 +1,116 @@
+---
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+
+interface Props {
+	class?: string;
+	style?: string;
+}
+
+const { class: className, style } = Astro.props;
+
+const nodes = [
+	{ id: "a", x: 20, y: 20 },
+	{ id: "b", x: 180, y: 20 },
+	{ id: "c", x: 20, y: 140 },
+	{ id: "d", x: 180, y: 140 },
+	{ id: "e", x: 100, y: 80 },
+];
+---
+
+<WidgetLayout id="graph-game" name="连线小游戏" class={className} style={style}>
+  <div class="text-sm text-neutral-600 dark:text-neutral-300 mb-2">
+    连线小游戏：点击两个点连接，连 5 条触发彩蛋
+  </div>
+  <div class="relative">
+    <svg id="graph-game-svg" viewBox="0 0 200 160" class="w-full h-[160px] rounded-lg border border-black/10 dark:border-white/15 bg-white/60 dark:bg-black/30">
+      <g id="graph-game-edges"></g>
+      {nodes.map((n) => (
+        <g class="graph-node" data-node={n.id} transform={`translate(${n.x}, ${n.y})`}>
+          <circle r="8" class="fill-[var(--primary)]/80" />
+          <circle r="4" class="fill-white/90" />
+        </g>
+      ))}
+    </svg>
+    <div id="graph-game-hint" class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+      0 / 5 已连
+    </div>
+    <button id="graph-game-reset" class="mt-2 btn-plain h-8 px-3 rounded-lg text-xs">重置</button>
+    <div id="graph-game-easter" class="mt-2 text-xs text-[var(--primary)] hidden">
+      连接成功：你已经构建了一张最小可用图！
+    </div>
+  </div>
+</WidgetLayout>
+
+<script is:inline define:vars={{ nodes }}>
+  (function() {
+    const svg = document.getElementById('graph-game-svg');
+    const edgesLayer = document.getElementById('graph-game-edges');
+    const hint = document.getElementById('graph-game-hint');
+    const resetBtn = document.getElementById('graph-game-reset');
+    const easter = document.getElementById('graph-game-easter');
+    if (!svg || !edgesLayer || !hint || !resetBtn || !easter) return;
+
+    let selected = null;
+    let edges = new Set();
+
+    function edgeKey(a, b) {
+      return [a, b].sort().join('-');
+    }
+
+    function updateHint() {
+      const count = edges.size;
+      hint.textContent = `${count} / 5 已连`;
+      if (count >= 5) {
+        easter.classList.remove('hidden');
+      } else {
+        easter.classList.add('hidden');
+      }
+    }
+
+    function reset() {
+      edges.clear();
+      edgesLayer.innerHTML = '';
+      selected = null;
+      updateHint();
+    }
+
+    function connect(a, b) {
+      const key = edgeKey(a, b);
+      if (edges.has(key)) return;
+      edges.add(key);
+      const na = nodes.find(n => n.id === a);
+      const nb = nodes.find(n => n.id === b);
+      if (!na || !nb) return;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', na.x);
+      line.setAttribute('y1', na.y);
+      line.setAttribute('x2', nb.x);
+      line.setAttribute('y2', nb.y);
+      line.setAttribute('stroke', 'var(--primary)');
+      line.setAttribute('stroke-width', '2');
+      line.setAttribute('stroke-linecap', 'round');
+      edgesLayer.appendChild(line);
+      updateHint();
+    }
+
+    svg.querySelectorAll('.graph-node').forEach((node) => {
+      node.addEventListener('click', () => {
+        const id = node.getAttribute('data-node');
+        if (!id) return;
+        if (!selected) {
+          selected = id;
+          return;
+        }
+        if (selected === id) {
+          selected = null;
+          return;
+        }
+        connect(selected, id);
+        selected = null;
+      });
+    });
+
+    resetBtn.addEventListener('click', reset);
+    updateHint();
+  })();
+</script>

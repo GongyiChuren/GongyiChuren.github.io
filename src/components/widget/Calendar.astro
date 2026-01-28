@@ -49,6 +49,20 @@ const currentLang = siteConfig.lang || "en";
 const enablePostRecords = false;
 const calendarDataUrl = url("/api/calendar.json");
 const postUrlPrefix = url("/posts/");
+
+// 预渲染当月日历（避免客户端脚本失效导致空白）
+const now = new Date();
+const initYear = now.getFullYear();
+const initMonth = now.getMonth();
+const initFirstDay = new Date(initYear, initMonth, 1).getDay();
+const initDaysInMonth = new Date(initYear, initMonth + 1, 0).getDate();
+const initialCalendarDays = [];
+for (let i = 0; i < initFirstDay; i++) {
+	initialCalendarDays.push(null);
+}
+for (let day = 1; day <= initDaysInMonth; day++) {
+	initialCalendarDays.push(day);
+}
 ---
 
 <WidgetLayout id="calendar-widget" class={className} style={style}>
@@ -88,9 +102,13 @@ const postUrlPrefix = url("/posts/");
         ))}
       </div>
       
-      <!-- 日历格子（由客户端动态生成） -->
+      <!-- 日历格子（预渲染 + 客户端更新） -->
       <div class="calendar-grid grid grid-cols-7 gap-1" id="calendar-grid">
-        <!-- 将由 JavaScript 填充 -->
+        {initialCalendarDays.map((day) => (
+          <div class="calendar-day aspect-square flex items-center justify-center rounded text-sm text-neutral-700 dark:text-neutral-300">
+            {day ?? ""}
+          </div>
+        ))}
       </div>
     </div>
 

@@ -41,21 +41,21 @@ const worldWidth = 520;
     const player = { x: 16, y: 96, w: 10, h: 12, vx: 0, vy: 0, onGround: false };
     const gravity = 0.6;
     const speed = 2.1;
-    const jump = -7.4;
-    const maxJump = -10.2;
+    const jump = -7.6;
+    const maxJump = -10.4;
     let platforms = [
       { x: 0, y: 120, w: 400, h: 20 },
     ];
     let coins = [];
     let enemies = [];
-    let boss = { active: false, tier: 0, x: 0, y: 90, w: 30, h: 30, vx: 0, vy: 0, onGround: false, timer: 0, speed: 1.0, jump: -6.8 };
+    let boss = { active: false, tier: 0, x: 0, y: 90, w: 28, h: 28, vx: 0, vy: 0, onGround: false, timer: 0, speed: 0.85, jump: -6.2 };
     let running = false;
     let collected = 0;
     let fails = 0;
     const keys = new Set();
     let charging = false;
     let jumpCharge = 0;
-    const maxCharge = 36;
+    const maxCharge = 28;
     let cameraX = 0;
     let worldEnd = 400;
     let colorTimer = 0;
@@ -72,7 +72,7 @@ const worldWidth = 520;
       platforms = [{ x: 0, y: 120, w: 400, h: 20 }];
       coins = [];
       enemies = [];
-      boss = { active: false, tier: 0, x: 0, y: 90, w: 30, h: 30, vx: 0, vy: 0, onGround: false, timer: 0, speed: 1.0, jump: -6.8 };
+      boss = { active: false, tier: 0, x: 0, y: 90, w: 28, h: 28, vx: 0, vy: 0, onGround: false, timer: 0, speed: 0.85, jump: -6.2 };
       worldEnd = 400;
       collected = 0;
       colorTimer = 0;
@@ -100,7 +100,8 @@ const worldWidth = 520;
         const x = baseX + i * gap;
         platforms.push({ x, y, w, h });
         if (Math.random() > 0.3) {
-          coins.push({ x: x + w / 2, y: y - 12, r: 4, got: false });
+          const isBonus = Math.random() > 0.82;
+          coins.push({ x: x + w / 2, y: y - 12, r: 4, got: false, bonus: isBonus });
         }
         if (Math.random() > 0.6) {
           enemies.push({ x: x + 10, y: 108, w: 10, h: 10, dir: Math.random() > 0.5 ? 1 : -1, min: x - 10, max: x + w + 10, alive: true });
@@ -152,13 +153,14 @@ const worldWidth = 520;
           const dy = player.y + player.h / 2 - c.y;
           if (Math.hypot(dx, dy) < c.r + 6) {
             c.got = true;
-            collected += 1;
+            collected += c.bonus ? 2 : 1;
             if (collected % 5 === 0) {
               colorTimer = 180;
             }
-            if (collected >= 1) {
+            if (collected >= 20) {
               running = false;
               win.classList.remove('hidden');
+              triggerConfetti();
             }
           }
         }
@@ -184,11 +186,11 @@ const worldWidth = 520;
       if (!boss.active && collected >= 10) {
         boss.active = true;
         boss.tier = collected >= 20 ? 2 : 1;
-        boss.timer = boss.tier === 2 ? 520 : 360;
-        boss.w = boss.tier === 2 ? 42 : 30;
-        boss.h = boss.tier === 2 ? 42 : 30;
-        boss.speed = boss.tier === 2 ? 1.35 : 1.0;
-        boss.jump = boss.tier === 2 ? -7.8 : -6.8;
+        boss.timer = boss.tier === 2 ? 480 : 320;
+        boss.w = boss.tier === 2 ? 36 : 28;
+        boss.h = boss.tier === 2 ? 36 : 28;
+        boss.speed = boss.tier === 2 ? 1.0 : 0.8;
+        boss.jump = boss.tier === 2 ? -6.8 : -6.2;
         boss.x = Math.max(0, cameraX - 30);
         boss.y = 120 - boss.h;
         boss.vy = 0;
@@ -197,10 +199,10 @@ const worldWidth = 520;
       if (boss.active) {
         if (boss.tier === 1 && collected >= 20) {
           boss.tier = 2;
-          boss.w = 42;
-          boss.h = 42;
-          boss.speed = 1.35;
-          boss.jump = -7.8;
+          boss.w = 36;
+          boss.h = 36;
+          boss.speed = 1.0;
+          boss.jump = -6.8;
         }
         const dir = player.x > boss.x ? 1 : -1;
         boss.x += dir * boss.speed;
@@ -214,7 +216,7 @@ const worldWidth = 520;
         } else {
           boss.onGround = false;
         }
-        if (boss.onGround && Math.random() < (boss.tier === 2 ? 0.06 : 0.035)) {
+        if (boss.onGround && Math.random() < (boss.tier === 2 ? 0.045 : 0.028)) {
           boss.vy = boss.jump;
           boss.onGround = false;
         }
@@ -266,7 +268,7 @@ const worldWidth = 520;
       coins.forEach(c => {
         if (c.got) return;
         ctx.beginPath();
-        ctx.fillStyle = 'rgba(255, 193, 7, 0.9)';
+        ctx.fillStyle = c.bonus ? 'rgba(236, 72, 153, 0.95)' : 'rgba(255, 193, 7, 0.9)';
         ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
         ctx.fill();
       });
@@ -300,7 +302,7 @@ const worldWidth = 520;
 
       ctx.restore();
 
-      if (!running && collected >= 1) {
+      if (!running && collected >= 20) {
         ctx.save();
         ctx.fillStyle = '#22d3ee';
         ctx.shadowColor = 'rgba(34, 211, 238, 0.9)';
@@ -347,7 +349,8 @@ const worldWidth = 520;
       keys.delete(e.key);
       if (isJumpKey(e.key) && charging && player.onGround) {
         const ratio = Math.min(1, jumpCharge / maxCharge);
-        player.vy = jump + (maxJump - jump) * ratio;
+        const boosted = jump + (maxJump - jump) * ratio;
+        player.vy = jumpCharge <= 2 ? jump : boosted;
         player.onGround = false;
       }
       if (isJumpKey(e.key)) {
@@ -356,6 +359,59 @@ const worldWidth = 520;
       }
     });
 
+    function triggerConfetti() {
+      const layer = document.createElement('div');
+      layer.className = 'confetti-layer';
+      const colors = ['#22d3ee', '#f472b6', '#a78bfa', '#facc15', '#34d399'];
+      for (let i = 0; i < 40; i++) {
+        const piece = document.createElement('i');
+        const size = 4 + Math.random() * 6;
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.width = `${size}px`;
+        piece.style.height = `${size * 1.6}px`;
+        piece.style.background = colors[i % colors.length];
+        piece.style.animationDelay = `${Math.random() * 0.6}s`;
+        piece.style.animationDuration = `${2.5 + Math.random() * 1.5}s`;
+        layer.appendChild(piece);
+      }
+      canvas.parentElement.appendChild(layer);
+      setTimeout(() => layer.remove(), 6000);
+    }
+
     reset();
   })();
 </script>
+
+<style is:inline>
+  #graph-game {
+    position: relative;
+  }
+  #graph-game .confetti-layer {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 5;
+  }
+  #graph-game .confetti-layer i {
+    position: absolute;
+    top: -10px;
+    border-radius: 2px;
+    opacity: 0.9;
+    animation-name: confetti-fall;
+    animation-timing-function: linear;
+  }
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(180px) rotate(220deg);
+      opacity: 0;
+    }
+  }
+</style>

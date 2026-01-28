@@ -40,9 +40,9 @@ const worldWidth = 520;
 
     const player = { x: 16, y: 96, w: 10, h: 12, vx: 0, vy: 0, onGround: false };
     const gravity = 0.6;
-    const speed = 1.6;
-    const jump = -6.8;
-    const maxJump = -9.6;
+    const speed = 2.1;
+    const jump = -7.4;
+    const maxJump = -10.2;
     let platforms = [
       { x: 0, y: 120, w: 400, h: 20 },
     ];
@@ -255,12 +255,12 @@ const worldWidth = 520;
       ctx.translate(-cameraX, 0);
 
       platforms.forEach(p => {
-        ctx.shadowColor = 'rgba(56, 189, 248, 0.45)';
-        ctx.shadowBlur = 8;
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
+        ctx.shadowColor = 'rgba(56, 189, 248, 0.65)';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
         ctx.fillRect(p.x, p.y, p.w, p.h);
         ctx.shadowBlur = 0;
-        ctx.fillStyle = 'rgba(186, 230, 253, 0.75)';
+        ctx.fillStyle = 'rgba(186, 230, 253, 0.95)';
         ctx.fillRect(p.x, p.y, p.w, 1.5);
       });
       coins.forEach(c => {
@@ -299,6 +299,17 @@ const worldWidth = 520;
       ctx.fillRect(player.x + 6, player.y + 4, 2, 2);
 
       ctx.restore();
+
+      if (!running && collected >= 25) {
+        ctx.save();
+        ctx.fillStyle = '#22d3ee';
+        ctx.shadowColor = 'rgba(34, 211, 238, 0.9)';
+        ctx.shadowBlur = 12;
+        ctx.font = 'bold 12px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Thanks for playing my game.', gameWidth / 2, 24);
+        ctx.restore();
+      }
     }
 
     function loop() {

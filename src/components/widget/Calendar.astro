@@ -166,10 +166,6 @@ const postUrlPrefix = url("/posts/");
 
   async function fetchData() {
     if (!enablePostRecords) {
-      postDateMap = {};
-      allPostsData = [];
-      availableYears = [new Date().getFullYear()];
-      renderCalendar();
       return;
     }
     try {
@@ -194,6 +190,7 @@ const postUrlPrefix = url("/posts/");
       renderCalendar();
     } catch (error) {
       console.error("Failed to fetch calendar data", error);
+      renderCalendar();
     }
   }
 
@@ -508,7 +505,14 @@ const postUrlPrefix = url("/posts/");
       displayYear = now.getFullYear();
       displayMonth = now.getMonth();
       
-      fetchData();
+      if (!enablePostRecords) {
+        postDateMap = {};
+        allPostsData = [];
+        availableYears = [new Date().getFullYear()];
+        renderCalendar();
+      } else {
+        fetchData();
+      }
       
       // Bind events
       const prevBtn = document.getElementById('prev-month-btn');

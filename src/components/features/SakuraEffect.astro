@@ -1,29 +1,169 @@
 ---
 import { sakuraConfig } from "@/config";
+
+// 强制启用配置，忽略配置文件的开关，确保用户能看到
+const config = { ...sakuraConfig, enable: true };
 ---
 
-{sakuraConfig?.enable && (
-  <script>
-    import { initSakura } from "@/utils/sakura-manager";
-    import { sakuraConfig } from "@/config";
+<div id="aurora-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;"></div>
 
-    // 初始化函数
-    function setupSakura() {
-      initSakura(sakuraConfig);
-    }
+<script is:inline>
+    // 立即执行的内联脚本，确保无缓存、无模块加载延迟
+    (function() {
+        console.log("🚀 Aurora Effect Initializing...");
 
-    // 立即初始化
-    setupSakura();
+        const CONTAINER_ID = "aurora-container";
+        const CANVAS_ID = "canvas_aurora_forced";
 
-    // 兼容 Astro View Transitions
-    document.addEventListener('astro:page-load', setupSakura);
-    
-    // 兼容 Swup (如果项目中使用)
-    // 根据 Layout.astro，项目似乎使用了 swup
-    if (window.swup) {
-      window.swup.hooks.on('content:replace', setupSakura);
-    } else {
-      document.addEventListener('swup:content:replace', setupSakura);
-    }
-  </script>
-)}
+        // 极光光团类
+        class AuroraOrb {
+            constructor(width, height, colors) {
+                this.init(width, height, colors);
+            }
+
+            init(width, height, colors) {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5; // 稍微调快一点点
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.min(width, height) * (0.25 + Math.random() * 0.3); // 大光斑
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.alpha = 0.3 + Math.random() * 0.3; // 提高不透明度
+                this.phase = Math.random() * Math.PI * 2;
+                this.phaseSpeed = 0.005 + Math.random() * 0.01;
+            }
+
+            update(width, height) {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.phase += this.phaseSpeed;
+
+                // 简单的边界反弹
+                if (this.x < -this.radius) this.vx = Math.abs(this.vx);
+                if (this.x > width + this.radius) this.vx = -Math.abs(this.vx);
+                if (this.y < -this.radius) this.vy = Math.abs(this.vy);
+                if (this.y > height + this.radius) this.vy = -Math.abs(this.vy);
+            }
+
+            draw(ctx) {
+                ctx.save();
+                
+                // 呼吸效果
+                const currentAlpha = this.alpha * (0.7 + Math.sin(this.phase) * 0.3);
+                
+                // 径向渐变
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+                
+                // 解析颜色 hex 转 rgba
+                const hex = this.color;
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                
+                gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${currentAlpha})`);
+                gradient.addColorStop(0.6, `rgba(${r}, ${g}, ${b}, ${currentAlpha * 0.2})`);
+                gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+                ctx.fillStyle = gradient;
+                // 使用 screen 混合模式让光效叠加更亮
+                ctx.globalCompositeOperation = 'screen'; 
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        const STAR_COLORS = [
+            "#4c1d95", // Deep Violet
+            "#3b82f6", // Blue
+            "#06b6d4", // Cyan
+            "#d946ef", // Fuchsia
+            "#8b5cf6", // Violet
+        ];
+
+        let canvas, ctx, animationId;
+        let orbs = [];
+
+        function init() {
+            // 清理旧的（如果有）
+            const oldCanvas = document.getElementById(CANVAS_ID);
+            if (oldCanvas) {
+                oldCanvas.remove();
+            }
+
+            // 创建 Canvas
+            canvas = document.createElement("canvas");
+            canvas.id = CANVAS_ID;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvas.style.position = "fixed";
+            canvas.style.top = "0";
+            canvas.style.left = "0";
+            canvas.style.pointerEvents = "none";
+            canvas.style.zIndex = "0"; // 确保不遮挡内容，但要在背景图上
+            canvas.style.opacity = "0.8"; // 整体透明度
+            
+            // 尝试挂载到专用容器，或者 body
+            const container = document.getElementById(CONTAINER_ID);
+            if (container) {
+                container.appendChild(canvas);
+            } else {
+                document.body.appendChild(canvas);
+            }
+
+            ctx = canvas.getContext("2d");
+
+            // 初始化光团
+            orbs = [];
+            for (let i = 0; i < 8; i++) {
+                orbs.push(new AuroraOrb(canvas.width, canvas.height, STAR_COLORS));
+            }
+
+            animate();
+        }
+
+        function animate() {
+            if (!ctx || !canvas) return;
+
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制
+            orbs.forEach(orb => {
+                orb.update(canvas.width, canvas.height);
+                orb.draw(ctx);
+            });
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function onResize() {
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                // 窗口变化时重新生成位置，防止变形
+                orbs = [];
+                for (let i = 0; i < 8; i++) {
+                    orbs.push(new AuroraOrb(canvas.width, canvas.height, STAR_COLORS));
+                }
+            }
+        }
+
+        // 启动
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        window.addEventListener('resize', onResize);
+
+        // 兼容页面切换 (Swup / Astro ViewTransitions)
+        document.addEventListener('astro:page-load', init);
+        if (window.swup) {
+            window.swup.hooks.on('content:replace', init);
+        }
+    })();
+</script>

@@ -1,12 +1,12 @@
 import type { SakuraConfig } from "../types/config";
 
-// 字符对象类 (原 Sakura 类修改)
-class BinaryChar {
+// 萤火虫对象类
+class Firefly {
 	x: number;
 	y: number;
-	s: number;
-	r: number;
-	a: number;
+	s: number; // 大小
+	r: number; // 这里的 r 用作相位偏移，控制呼吸节奏
+	a: number; // 基础不透明度
 	fn: {
 		x: (x: number, y: number) => number;
 		y: (x: number, y: number) => number;
@@ -14,8 +14,6 @@ class BinaryChar {
 		a: (a: number) => number;
 	};
 	idx: number;
-	// img: HTMLImageElement; // 不再需要图片
-	char: string; // 存储 "0" 或 "1"
 	limitArray: number[];
 	config: SakuraConfig;
 
@@ -32,7 +30,6 @@ class BinaryChar {
 			a: (a: number) => number;
 		},
 		idx: number,
-		// img: HTMLImageElement,
 		limitArray: number[],
 		config: SakuraConfig,
 	) {
@@ -43,93 +40,68 @@ class BinaryChar {
 		this.a = a;
 		this.fn = fn;
 		this.idx = idx;
-		// this.img = img;
 		this.limitArray = limitArray;
 		this.config = config;
-		this.char = Math.random() > 0.5 ? "1" : "0"; // 随机生成 0 或 1
 	}
 
-	draw(cxt: CanvasRenderingContext2D) {
-		cxt.save();
-		cxt.translate(this.x, this.y);
-		cxt.rotate(this.r);
-		cxt.globalAlpha = this.a;
+	draw(cxt: CanvasRenderingContext2D, globalAlpha: number) {
+		// 计算呼吸效果
+		// 使用 sin 函数创建平滑的呼吸节奏，周期约为 3-5 秒
+		const breath = (Math.sin(Date.now() / 1500 + this.r) + 1) / 2; // 0 到 1 之间波动
+		const currentAlpha = this.a * (0.3 + breath * 0.7) * globalAlpha; // 基础透明度 * 呼吸因子 * 全局淡入淡出
 
-		// 绘制发光文字
-		const fontSize = 24 * this.s;
-		cxt.font = `bold ${fontSize}px monospace`;
+		if (currentAlpha <= 0.01) return;
+
+		cxt.save();
+		cxt.globalAlpha = currentAlpha;
+
+		// 绘制发光圆形
+		const size = 3 * this.s; // 基础大小
 		
-		// Gemini CLI 风格紫色配色
-		cxt.fillStyle = "#c084fc"; // 亮紫色文本
-		cxt.shadowColor = "#7e22ce"; // 深紫色光晕
-		cxt.shadowBlur = 10 * this.s; // 动态光晕大小
+		// 萤火虫核心
+		cxt.beginPath();
+		cxt.arc(this.x, this.y, size, 0, Math.PI * 2);
+		cxt.fillStyle = "#fbbf24"; // 暖金色核心
+		cxt.fill();
+
+		// 萤火虫光晕
+		// 通过径向渐变模拟柔和光晕
+		const gradient = cxt.createRadialGradient(this.x, this.y, size, this.x, this.y, size * 4);
+		gradient.addColorStop(0, "rgba(251, 191, 36, 0.4)"); // 核心周围较亮
+		gradient.addColorStop(1, "rgba(251, 191, 36, 0)");   // 边缘完全透明
 		
-		cxt.fillText(this.char, 0, 0);
-		
+		cxt.fillStyle = gradient;
+		cxt.beginPath();
+		cxt.arc(this.x, this.y, size * 4, 0, Math.PI * 2);
+		cxt.fill();
+
 		cxt.restore();
 	}
 
 	update() {
+		// 萤火虫移动逻辑：缓慢漂浮，带有随机扰动
+		// 使用 perlin noise 思想的简化版或叠加正弦波会让运动更自然，这里沿用之前的接口微调参数
 		this.x = this.fn.x(this.x, this.y);
 		this.y = this.fn.y(this.y, this.y);
-		this.r = this.fn.r(this.r);
-		this.a = this.fn.a(this.a);
-
-		// 偶尔变换字符，增加动态感
-		if (Math.random() < 0.05) {
-			this.char = this.char === "1" ? "0" : "1";
-		}
-
-		// 如果字符越界或完全透明，重新调整位置
-		if (
-			this.x > window.innerWidth ||
-			this.x < 0 ||
-			this.y > window.innerHeight ||
-			this.y < 0 ||
-			this.a <= 0
-		) {
-			// 如果不做限制
-			if (this.limitArray[this.idx] === -1) {
-				this.resetPosition();
-			}
-			// 否则有限制
-			else {
-				if (this.limitArray[this.idx] > 0) {
-					this.resetPosition();
-					this.limitArray[this.idx]--;
-				}
-			}
-		}
-	}
-
-	private resetPosition() {
-		this.fn.r = getRandom("fnr", this.config);
-		if (Math.random() > 0.4) {
-			this.x = getRandom("x", this.config);
-			this.y = 0;
-			this.s = getRandom("s", this.config);
-			this.r = getRandom("r", this.config);
-			this.a = getRandom("a", this.config);
-		} else {
-			this.x = window.innerWidth;
-			this.y = getRandom("y", this.config);
-			this.s = getRandom("s", this.config);
-			this.r = getRandom("r", this.config);
-			this.a = getRandom("a", this.config);
-		}
+		
+		// 边界检查：无缝循环
+		if (this.x > window.innerWidth + 50) this.x = -50;
+		if (this.x < -50) this.x = window.innerWidth + 50;
+		if (this.y > window.innerHeight + 50) this.y = -50;
+		if (this.y < -50) this.y = window.innerHeight + 50;
 	}
 }
 
-// 列表类 (SakuraList -> BinaryList)
-class BinaryList {
-	list: BinaryChar[];
+// 列表类
+class FireflyList {
+	list: Firefly[];
 
 	constructor() {
 		this.list = [];
 	}
 
-	push(char: BinaryChar) {
-		this.list.push(char);
+	push(firefly: Firefly) {
+		this.list.push(firefly);
 	}
 
 	update() {
@@ -138,18 +110,10 @@ class BinaryList {
 		}
 	}
 
-	draw(cxt: CanvasRenderingContext2D) {
+	draw(cxt: CanvasRenderingContext2D, globalAlpha: number) {
 		for (let i = 0, len = this.list.length; i < len; i++) {
-			this.list[i].draw(cxt);
+			this.list[i].draw(cxt, globalAlpha);
 		}
-	}
-
-	get(i: number) {
-		return this.list[i];
-	}
-
-	size() {
-		return this.list.length;
 	}
 }
 
@@ -167,7 +131,6 @@ function getRandom(
 	config: SakuraConfig,
 ): number | ((...args: number[]) => number) {
 	let ret: number | ((...args: number[]) => number) = 0;
-	let random: number;
 
 	switch (option) {
 		case "x":
@@ -181,8 +144,7 @@ function getRandom(
 				config.size.min + Math.random() * (config.size.max - config.size.min);
 			break;
 		case "r":
-			// 字符旋转幅度减小，保持一定的可读性
-			ret = Math.random() * 0.5;
+			ret = Math.random() * Math.PI * 2; // 随机相位
 			break;
 		case "a":
 			ret =
@@ -190,24 +152,17 @@ function getRandom(
 				Math.random() * (config.opacity.max - config.opacity.min);
 			break;
 		case "fnx":
-			random =
-				config.speed.horizontal.min +
-				Math.random() *
-					(config.speed.horizontal.max - config.speed.horizontal.min);
-			ret = (x: number, _y: number) => x + random;
+			// 水平飘动速度
+			const speedX = (Math.random() - 0.5) * 0.5; 
+			ret = (x: number, _y: number) => x + speedX;
 			break;
 		case "fny":
-			random =
-				config.speed.vertical.min +
-				Math.random() * (config.speed.vertical.max - config.speed.vertical.min);
-			ret = (_x: number, y: number) => y + random;
+			// 垂直起伏速度，甚至可以向上飞
+			const speedY = (Math.random() - 0.5) * 0.5;
+			ret = (_x: number, y: number) => y + speedY;
 			break;
-		case "fnr":
-			ret = (r: number) => r + config.speed.rotation;
-			break;
-		case "fna":
-			ret = (alpha: number) => alpha - config.speed.fadeSpeed * 0.01;
-			break;
+		default:
+			ret = 0;
 	}
 	return ret;
 }
@@ -217,21 +172,41 @@ export class SakuraManager {
 	private config: SakuraConfig;
 	private canvas: HTMLCanvasElement | null = null;
 	private ctx: CanvasRenderingContext2D | null = null;
-	private list: BinaryList | null = null;
+	private list: FireflyList | null = null;
 	private animationId: number | null = null;
 	private isRunning = false;
+	
+	// 待机检测相关属性
+	private lastActivityTime: number = Date.now();
+	private globalAlpha: number = 0; // 全局透明度，用于渐显
+	private readonly idleThreshold: number = 5000; // 5秒待机阈值
+	private readonly fadeSpeed: number = 0.02; // 渐显速度
 
 	constructor(config: SakuraConfig) {
 		this.config = config;
+		this.setupActivityListeners();
 	}
 
-	// 初始化特效
+	// 设置用户活动监听
+	private setupActivityListeners() {
+		const updateActivity = () => {
+			this.lastActivityTime = Date.now();
+			// 活动时，如果特效正在显示，可以选择立即隐藏或慢慢淡出
+			// 这里我们选择不立即隐藏，而是让 update 循环去处理 globalAlpha
+		};
+
+		// 监听常见的用户活动
+		window.addEventListener('mousemove', updateActivity);
+		window.addEventListener('keydown', updateActivity);
+		window.addEventListener('scroll', updateActivity);
+		window.addEventListener('click', updateActivity);
+		window.addEventListener('touchstart', updateActivity);
+	}
+
 	async init(): Promise<void> {
 		if (!this.config.enable || this.isRunning) {
 			return;
 		}
-
-		// 不再需要加载图片
 
 		this.createCanvas();
 		this.createList();
@@ -239,7 +214,6 @@ export class SakuraManager {
 		this.isRunning = true;
 	}
 
-	// 创建画布
 	private createCanvas(): void {
 		this.canvas = document.createElement("canvas");
 		this.canvas.height = window.innerHeight;
@@ -248,24 +222,21 @@ export class SakuraManager {
 			"style",
 			`position: fixed; left: 0; top: 0; pointer-events: none; z-index: ${this.config.zIndex};`,
 		);
-		this.canvas.setAttribute("id", "canvas_sakura"); // 保持 ID 不变以兼容现有样式
+		this.canvas.setAttribute("id", "canvas_sakura");
 		document.body.appendChild(this.canvas);
 		this.ctx = this.canvas.getContext("2d");
 
-		// 监听窗口大小变化
 		window.addEventListener("resize", this.handleResize.bind(this));
 	}
 
-	// 创建列表
 	private createList(): void {
 		if (!this.ctx) return;
 
-		this.list = new BinaryList();
-		const limitArray = new Array(this.config.sakuraNum).fill(
-			this.config.limitTimes,
-		);
+		this.list = new FireflyList();
+		const limitArray = new Array(this.config.sakuraNum).fill(-1); // 无限循环
 
 		for (let i = 0; i < this.config.sakuraNum; i++) {
+			// 参数生成
 			const randomX = getRandom("x", this.config);
 			const randomY = getRandom("y", this.config);
 			const randomS = getRandom("s", this.config);
@@ -273,10 +244,8 @@ export class SakuraManager {
 			const randomA = getRandom("a", this.config);
 			const randomFnx = getRandom("fnx", this.config);
 			const randomFny = getRandom("fny", this.config);
-			const randomFnR = getRandom("fnr", this.config);
-			const randomFnA = getRandom("fna", this.config);
 
-			const char = new BinaryChar(
+			const firefly = new Firefly(
 				randomX,
 				randomY,
 				randomS,
@@ -285,20 +254,18 @@ export class SakuraManager {
 				{
 					x: randomFnx,
 					y: randomFny,
-					r: randomFnR,
-					a: randomFnA,
+					r: () => 0,
+					a: () => 0,
 				},
 				i,
 				limitArray,
 				this.config,
 			);
 
-			char.draw(this.ctx);
-			this.list.push(char);
+			this.list.push(firefly);
 		}
 	}
 
-	// 开始动画
 	private startAnimation(): void {
 		if (!this.ctx || !this.canvas || !this.list) return;
 
@@ -306,15 +273,37 @@ export class SakuraManager {
 			if (!this.ctx || !this.canvas || !this.list) return;
 
 			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-			this.list.update();
-			this.list.draw(this.ctx);
+
+			const now = Date.now();
+			const idleTime = now - this.lastActivityTime;
+
+			// 状态机逻辑
+			if (idleTime > this.idleThreshold) {
+				// 待机超过5秒，渐显
+				if (this.globalAlpha < 1) {
+					this.globalAlpha += this.fadeSpeed;
+					if (this.globalAlpha > 1) this.globalAlpha = 1;
+				}
+			} else {
+				// 用户活动中，渐隐
+				if (this.globalAlpha > 0) {
+					this.globalAlpha -= this.fadeSpeed * 2; // 消失稍微快一点
+					if (this.globalAlpha < 0) this.globalAlpha = 0;
+				}
+			}
+
+			// 只有完全不透明度大于0时才计算和绘制
+			if (this.globalAlpha > 0.001) {
+				this.list.update();
+				this.list.draw(this.ctx, this.globalAlpha);
+			}
+
 			this.animationId = requestAnimationFrame(animate);
 		};
 
 		this.animationId = requestAnimationFrame(animate);
 	}
 
-	// 处理窗口大小变化
 	private handleResize(): void {
 		if (this.canvas) {
 			this.canvas.width = window.innerWidth;
@@ -322,53 +311,38 @@ export class SakuraManager {
 		}
 	}
 
-	// 停止特效
 	stop(): void {
 		if (this.animationId) {
 			cancelAnimationFrame(this.animationId);
 			this.animationId = null;
 		}
-
 		if (this.canvas) {
 			document.body.removeChild(this.canvas);
 			this.canvas = null;
 		}
-
 		window.removeEventListener("resize", this.handleResize.bind(this));
 		this.isRunning = false;
 	}
 
-	// 切换特效
 	toggle(): void {
-		if (this.isRunning) {
-			this.stop();
-		} else {
-			this.init();
-		}
+		if (this.isRunning) this.stop();
+		else this.init();
 	}
 
-	// 更新配置
 	updateConfig(newConfig: SakuraConfig): void {
 		const wasRunning = this.isRunning;
-		if (wasRunning) {
-			this.stop();
-		}
+		if (wasRunning) this.stop();
 		this.config = newConfig;
-		if (wasRunning && newConfig.enable) {
-			this.init();
-		}
+		if (wasRunning && newConfig.enable) this.init();
 	}
 
-	// 获取运行状态
 	getIsRunning(): boolean {
 		return this.isRunning;
 	}
 }
 
-// 创建全局管理器实例
 let globalSakuraManager: SakuraManager | null = null;
 
-// 初始化
 export function initSakura(config: SakuraConfig): void {
 	if (globalSakuraManager) {
 		globalSakuraManager.updateConfig(config);
@@ -380,14 +354,10 @@ export function initSakura(config: SakuraConfig): void {
 	}
 }
 
-// 切换
 export function toggleSakura(): void {
-	if (globalSakuraManager) {
-		globalSakuraManager.toggle();
-	}
+	if (globalSakuraManager) globalSakuraManager.toggle();
 }
 
-// 停止
 export function stopSakura(): void {
 	if (globalSakuraManager) {
 		globalSakuraManager.stop();
@@ -395,7 +365,6 @@ export function stopSakura(): void {
 	}
 }
 
-// 获取状态
 export function getSakuraStatus(): boolean {
 	return globalSakuraManager ? globalSakuraManager.getIsRunning() : false;
 }

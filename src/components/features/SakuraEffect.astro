@@ -1,32 +1,29 @@
 ---
 import { sakuraConfig } from "@/config";
-
-const config = sakuraConfig;
 ---
 
 {sakuraConfig?.enable && (
-	<script is:inline define:vars={{ sakuraConfig: config }}>
-		// 这个组件主要用于在浏览器端加载和初始化樱花特效
-		// 实际的逻辑已经迁移到了 @/utils/sakura-manager.ts
-		// 这里只需要调用该工具函数即可
-		
-		// 动态导入模块以确保在客户端运行
-		import('@/utils/sakura-manager').then(({ initSakura }) => {
-			// 初始化樱花特效（实际上是萤火虫特效，沿用了配置结构）
-			initSakura(sakuraConfig);
-			
-			// 标记已初始化，防止重复加载
-			window.sakuraInitialized = true;
-			
-			// 监听配置变更或页面跳转重新初始化
-			document.addEventListener('astro:page-load', () => {
-				if (!window.sakuraInitialized) {
-					initSakura(sakuraConfig);
-					window.sakuraInitialized = true;
-				}
-			});
-		}).catch(err => {
-			console.error('Failed to load sakura manager:', err);
-		});
-	</script>
+  <script>
+    import { initSakura } from "@/utils/sakura-manager";
+    import { sakuraConfig } from "@/config";
+
+    // 初始化函数
+    function setupSakura() {
+      initSakura(sakuraConfig);
+    }
+
+    // 立即初始化
+    setupSakura();
+
+    // 兼容 Astro View Transitions
+    document.addEventListener('astro:page-load', setupSakura);
+    
+    // 兼容 Swup (如果项目中使用)
+    // 根据 Layout.astro，项目似乎使用了 swup
+    if (window.swup) {
+      window.swup.hooks.on('content:replace', setupSakura);
+    } else {
+      document.addEventListener('swup:content:replace', setupSakura);
+    }
+  </script>
 )}

@@ -1,41 +1,35 @@
 import type { SakuraConfig } from "../types/config";
 
 export const sakuraConfig: SakuraConfig = {
-	// 是否启用特效 (萤火微光: 始终开启)
+	// 是否启用特效 (深空极光)
 	enable: true,
 
-	// 粒子数量 (增加数量以提高可见性)
-	sakuraNum: 60,
+	// 光球数量 (由管理器内部控制，此处参数预留)
+	sakuraNum: 10,
 
-	// 越界限制 (无限制，循环播放)
+	// 无限循环
 	limitTimes: -1,
 
-	// 粒子尺寸
+	// 尺寸配置 (预留)
 	size: {
-		min: 0.8,
-		max: 1.8,
+		min: 0,
+		max: 0,
 	},
 
-	// 不透明度
+	// 透明度配置 (预留)
 	opacity: {
-		min: 0.4,
-		max: 0.9,
+		min: 0,
+		max: 0,
 	},
 
-	// 移动速度
+	// 速度配置 (预留)
 	speed: {
-		horizontal: {
-			min: -0.4,
-			max: 0.4,
-		},
-		vertical: {
-			min: -0.4,
-			max: 0.4,
-		},
-		rotation: 0.02, 
+		horizontal: { min: 0, max: 0 },
+		vertical: { min: 0, max: 0 },
+		rotation: 0,
 		fadeSpeed: 0,
 	},
 
-	// 层级，设置为 1 确保在背景图之上，但在内容下方
-	zIndex: 1, 
+	// 层级：背景之上
+	zIndex: 0, 
 };

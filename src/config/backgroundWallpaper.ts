@@ -43,7 +43,7 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 				// 打字速度（毫秒）
 				speed: 100,
 				// 删除速度（毫秒）
-				deleteSpeed: 50,
+				deleteSpeed: 80,
 				// 完全显示后的暂停时间（毫秒）
 				pauseTime: 2000,
 			},

@@ -1,7 +1,7 @@
 import type { SakuraConfig } from "../types/config";
 
-// 樱花对象类
-class Sakura {
+// 字符对象类 (原 Sakura 类修改)
+class BinaryChar {
 	x: number;
 	y: number;
 	s: number;
@@ -14,7 +14,8 @@ class Sakura {
 		a: (a: number) => number;
 	};
 	idx: number;
-	img: HTMLImageElement;
+	// img: HTMLImageElement; // 不再需要图片
+	char: string; // 存储 "0" 或 "1"
 	limitArray: number[];
 	config: SakuraConfig;
 
@@ -31,7 +32,7 @@ class Sakura {
 			a: (a: number) => number;
 		},
 		idx: number,
-		img: HTMLImageElement,
+		// img: HTMLImageElement,
 		limitArray: number[],
 		config: SakuraConfig,
 	) {
@@ -42,9 +43,10 @@ class Sakura {
 		this.a = a;
 		this.fn = fn;
 		this.idx = idx;
-		this.img = img;
+		// this.img = img;
 		this.limitArray = limitArray;
 		this.config = config;
+		this.char = Math.random() > 0.5 ? "1" : "0"; // 随机生成 0 或 1
 	}
 
 	draw(cxt: CanvasRenderingContext2D) {
@@ -52,7 +54,18 @@ class Sakura {
 		cxt.translate(this.x, this.y);
 		cxt.rotate(this.r);
 		cxt.globalAlpha = this.a;
-		cxt.drawImage(this.img, 0, 0, 40 * this.s, 40 * this.s);
+
+		// 绘制发光文字
+		const fontSize = 24 * this.s;
+		cxt.font = `bold ${fontSize}px monospace`;
+		
+		// Gemini CLI 风格紫色配色
+		cxt.fillStyle = "#c084fc"; // 亮紫色文本
+		cxt.shadowColor = "#7e22ce"; // 深紫色光晕
+		cxt.shadowBlur = 10 * this.s; // 动态光晕大小
+		
+		cxt.fillText(this.char, 0, 0);
+		
 		cxt.restore();
 	}
 
@@ -62,7 +75,12 @@ class Sakura {
 		this.r = this.fn.r(this.r);
 		this.a = this.fn.a(this.a);
 
-		// 如果樱花越界或完全透明，重新调整位置
+		// 偶尔变换字符，增加动态感
+		if (Math.random() < 0.05) {
+			this.char = this.char === "1" ? "0" : "1";
+		}
+
+		// 如果字符越界或完全透明，重新调整位置
 		if (
 			this.x > window.innerWidth ||
 			this.x < 0 ||
@@ -70,11 +88,11 @@ class Sakura {
 			this.y < 0 ||
 			this.a <= 0
 		) {
-			// 如果樱花不做限制
+			// 如果不做限制
 			if (this.limitArray[this.idx] === -1) {
 				this.resetPosition();
 			}
-			// 否则樱花有限制
+			// 否则有限制
 			else {
 				if (this.limitArray[this.idx] > 0) {
 					this.resetPosition();
@@ -102,16 +120,16 @@ class Sakura {
 	}
 }
 
-// 樱花列表类
-class SakuraList {
-	list: Sakura[];
+// 列表类 (SakuraList -> BinaryList)
+class BinaryList {
+	list: BinaryChar[];
 
 	constructor() {
 		this.list = [];
 	}
 
-	push(sakura: Sakura) {
-		this.list.push(sakura);
+	push(char: BinaryChar) {
+		this.list.push(char);
 	}
 
 	update() {
@@ -163,7 +181,8 @@ function getRandom(
 				config.size.min + Math.random() * (config.size.max - config.size.min);
 			break;
 		case "r":
-			ret = Math.random() * 6;
+			// 字符旋转幅度减小，保持一定的可读性
+			ret = Math.random() * 0.5;
 			break;
 		case "a":
 			ret =
@@ -193,41 +212,29 @@ function getRandom(
 	return ret;
 }
 
-// 樱花管理器类
+// 管理器类
 export class SakuraManager {
 	private config: SakuraConfig;
 	private canvas: HTMLCanvasElement | null = null;
 	private ctx: CanvasRenderingContext2D | null = null;
-	private sakuraList: SakuraList | null = null;
+	private list: BinaryList | null = null;
 	private animationId: number | null = null;
-	private img: HTMLImageElement | null = null;
 	private isRunning = false;
 
 	constructor(config: SakuraConfig) {
 		this.config = config;
 	}
 
-	// 初始化樱花特效
+	// 初始化特效
 	async init(): Promise<void> {
 		if (!this.config.enable || this.isRunning) {
 			return;
 		}
 
-		// 创建图片对象
-		this.img = new Image();
-		this.img.src = "/sakura.png"; // 使用樱花图片
-
-		// 等待图片加载完成
-		await new Promise<void>((resolve, reject) => {
-			if (this.img) {
-				this.img.onload = () => resolve();
-				this.img.onerror = () =>
-					reject(new Error("Failed to load sakura image"));
-			}
-		});
+		// 不再需要加载图片
 
 		this.createCanvas();
-		this.createSakuraList();
+		this.createList();
 		this.startAnimation();
 		this.isRunning = true;
 	}
@@ -241,7 +248,7 @@ export class SakuraManager {
 			"style",
 			`position: fixed; left: 0; top: 0; pointer-events: none; z-index: ${this.config.zIndex};`,
 		);
-		this.canvas.setAttribute("id", "canvas_sakura");
+		this.canvas.setAttribute("id", "canvas_sakura"); // 保持 ID 不变以兼容现有样式
 		document.body.appendChild(this.canvas);
 		this.ctx = this.canvas.getContext("2d");
 
@@ -249,11 +256,11 @@ export class SakuraManager {
 		window.addEventListener("resize", this.handleResize.bind(this));
 	}
 
-	// 创建樱花列表
-	private createSakuraList(): void {
-		if (!this.img || !this.ctx) return;
+	// 创建列表
+	private createList(): void {
+		if (!this.ctx) return;
 
-		this.sakuraList = new SakuraList();
+		this.list = new BinaryList();
 		const limitArray = new Array(this.config.sakuraNum).fill(
 			this.config.limitTimes,
 		);
@@ -269,7 +276,7 @@ export class SakuraManager {
 			const randomFnR = getRandom("fnr", this.config);
 			const randomFnA = getRandom("fna", this.config);
 
-			const sakura = new Sakura(
+			const char = new BinaryChar(
 				randomX,
 				randomY,
 				randomS,
@@ -282,26 +289,25 @@ export class SakuraManager {
 					a: randomFnA,
 				},
 				i,
-				this.img,
 				limitArray,
 				this.config,
 			);
 
-			sakura.draw(this.ctx);
-			this.sakuraList.push(sakura);
+			char.draw(this.ctx);
+			this.list.push(char);
 		}
 	}
 
 	// 开始动画
 	private startAnimation(): void {
-		if (!this.ctx || !this.canvas || !this.sakuraList) return;
+		if (!this.ctx || !this.canvas || !this.list) return;
 
 		const animate = () => {
-			if (!this.ctx || !this.canvas || !this.sakuraList) return;
+			if (!this.ctx || !this.canvas || !this.list) return;
 
 			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-			this.sakuraList.update();
-			this.sakuraList.draw(this.ctx);
+			this.list.update();
+			this.list.draw(this.ctx);
 			this.animationId = requestAnimationFrame(animate);
 		};
 
@@ -316,7 +322,7 @@ export class SakuraManager {
 		}
 	}
 
-	// 停止樱花特效
+	// 停止特效
 	stop(): void {
 		if (this.animationId) {
 			cancelAnimationFrame(this.animationId);
@@ -332,7 +338,7 @@ export class SakuraManager {
 		this.isRunning = false;
 	}
 
-	// 切换樱花特效
+	// 切换特效
 	toggle(): void {
 		if (this.isRunning) {
 			this.stop();
@@ -359,10 +365,10 @@ export class SakuraManager {
 	}
 }
 
-// 创建全局樱花管理器实例
+// 创建全局管理器实例
 let globalSakuraManager: SakuraManager | null = null;
 
-// 初始化樱花特效
+// 初始化
 export function initSakura(config: SakuraConfig): void {
 	if (globalSakuraManager) {
 		globalSakuraManager.updateConfig(config);
@@ -374,14 +380,14 @@ export function initSakura(config: SakuraConfig): void {
 	}
 }
 
-// 切换樱花特效
+// 切换
 export function toggleSakura(): void {
 	if (globalSakuraManager) {
 		globalSakuraManager.toggle();
 	}
 }
 
-// 停止樱花特效
+// 停止
 export function stopSakura(): void {
 	if (globalSakuraManager) {
 		globalSakuraManager.stop();
@@ -389,7 +395,7 @@ export function stopSakura(): void {
 	}
 }
 
-// 获取樱花特效运行状态
+// 获取状态
 export function getSakuraStatus(): boolean {
 	return globalSakuraManager ? globalSakuraManager.getIsRunning() : false;
 }

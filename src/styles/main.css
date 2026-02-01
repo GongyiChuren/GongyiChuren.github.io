@@ -194,6 +194,20 @@ html {
     .card-base-transparent {
         @apply rounded-[var(--radius-large)] overflow-hidden bg-[var(--card-bg-transparent)] backdrop-blur-sm transition-colors duration-150;
     }
+    
+    /* 增加文章卡片的悬浮效果：上浮 + 投影加深 */
+    .post-card-wrapper {
+        @apply transition-all duration-300 ease-out;
+    }
+    
+    .post-card-wrapper:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.15);
+    }
+    
+    :root.dark .post-card-wrapper:hover {
+        box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
 
     /* 开启边框和阴影效果时的样式 */
     .enable-card-border .card-base {

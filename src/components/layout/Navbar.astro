@@ -69,13 +69,13 @@ let links: NavBarLink[] = navBarConfig.links.map(
                 siteConfig.navbar.followTheme ? "text-[var(--primary)]" : "dark:text-white text-black"
             ]}>
                 {siteConfig.navbar.logo?.type === "icon" ? (
-                    <Icon name={siteConfig.navbar.logo.value || "material-symbols:home-pin-outline"} class="navbar-logo text-[2.1rem] mt-3 mr-0" />
+                    <Icon name={siteConfig.navbar.logo.value || "material-symbols:home-pin-outline"} class="navbar-logo text-[2.1rem] mt-1.5 mr-0" />
                 ) : siteConfig.navbar.logo?.type === "image" ? (
-                    <img src={url(siteConfig.navbar.logo.value)} alt={siteConfig.navbar.logo.alt || siteConfig.title} class="navbar-logo h-[5rem] w-[5rem] mt-3 mr-0 object-contain object-right" loading="lazy" />
+                    <img src={url(siteConfig.navbar.logo.value)} alt={siteConfig.navbar.logo.alt || siteConfig.title} class="navbar-logo h-[5rem] w-[5rem] mt-1.5 mr-0 object-contain object-right" loading="lazy" />
                 ) : (
-                    <Icon name="material-symbols:home-pin-outline" class="navbar-logo text-[2.1rem] mt-3 mr-0" />
+                    <Icon name="material-symbols:home-pin-outline" class="navbar-logo text-[2.1rem] mt-1.5 mr-0" />
                 )}
-                <span class="text-lg font-semibold tracking-wide ml-[-0.25em]">{navbarTitle}</span>
+                <span class="text-lg font-semibold tracking-wide ml-[-0.45em]">{navbarTitle}</span>
             </div>
         </a>
         <div class="hidden lg:flex items-center space-x-1 absolute left-1/2 -translate-x-1/2">

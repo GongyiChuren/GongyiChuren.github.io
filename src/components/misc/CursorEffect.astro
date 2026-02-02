@@ -1,5 +1,5 @@
 ---
-// 鼠标光标特效组件
+// 鼠标光标特效组件 + 点击涟漪特效
 ---
 
 <div id="cursor-dot" class="cursor-dot"></div>
@@ -204,4 +204,26 @@
     bindHoverHideTargets();
     observer.observe(document.body, { childList: true, subtree: true });
   }
+
+  // 点击涟漪特效
+  function createRipple(e: MouseEvent) {
+    // 忽略移动端
+    if (window.innerWidth <= 768) return;
+    
+    const ripple = document.createElement('div');
+    ripple.className = 'click-ripple';
+    ripple.style.left = `${e.clientX}px`;
+    ripple.style.top = `${e.clientY}px`;
+    ripple.style.width = '150px';
+    ripple.style.height = '150px';
+    
+    document.body.appendChild(ripple);
+    
+    // 动画结束后移除元素
+    ripple.addEventListener('animationend', () => {
+      ripple.remove();
+    });
+  }
+
+  document.addEventListener('click', createRipple);
 </script>

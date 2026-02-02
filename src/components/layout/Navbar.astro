@@ -69,13 +69,13 @@ let links: NavBarLink[] = navBarConfig.links.map(
                 siteConfig.navbar.followTheme ? "text-[var(--primary)]" : "dark:text-white text-black"
             ]}>
                 {siteConfig.navbar.logo?.type === "icon" ? (
-                    <Icon name={siteConfig.navbar.logo.value || "material-symbols:home-pin-outline"} class="navbar-logo text-[2.5rem] mt-3 mr-0" />
+                    <Icon name={siteConfig.navbar.logo.value || "material-symbols:home-pin-outline"} class="navbar-logo text-[2.5rem] mt-3 mr-2" />
                 ) : siteConfig.navbar.logo?.type === "image" ? (
-                    <img src={url(siteConfig.navbar.logo.value)} alt={siteConfig.navbar.logo.alt || siteConfig.title} class="navbar-logo h-[6.5rem] w-[6.5rem] mt-3 mr-0 object-contain object-right" loading="lazy" />
+                    <img src={url(siteConfig.navbar.logo.value)} alt={siteConfig.navbar.logo.alt || siteConfig.title} class="navbar-logo h-[3rem] w-[3rem] mt-0 mr-2 object-contain" loading="lazy" />
                 ) : (
-                    <Icon name="material-symbols:home-pin-outline" class="navbar-logo text-[2.5rem] mt-3 mr-0" />
+                    <Icon name="material-symbols:home-pin-outline" class="navbar-logo text-[2.5rem] mt-3 mr-2" />
                 )}
-                <span class="text-lg font-semibold tracking-wide -ml-2">{navbarTitle}</span>
+                <span class="text-lg font-semibold tracking-wide">{navbarTitle}</span>
             </div>
         </a>
         <div class="hidden lg:flex items-center space-x-1 absolute left-1/2 -translate-x-1/2">

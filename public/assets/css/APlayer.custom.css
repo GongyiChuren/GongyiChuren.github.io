@@ -1,6 +1,6 @@
 .aplayer.aplayer-fixed {
 	left: unset !important;
-	right: 2rem !important;
+	right: 1rem !important;
 	bottom: 2rem !important;
 	color: #000;
 	width: 100%;
@@ -62,7 +62,7 @@
 
 .aplayer.aplayer-fixed .aplayer-body {
 	left: unset !important;
-	right: 2rem !important;
+	right: 1rem !important;
 	width: 400px !important;
 	bottom: 2rem !important;
 	max-width: calc(100% - 18px);
@@ -203,38 +203,46 @@
 
 /* ===== 封面播放特效 ===== */
 /* 封面基础样式 - 改为发光音符 */
-.aplayer .aplayer-pic {
+.aplayer .aplayer-pic,
+.aplayer.aplayer-fixed .aplayer-pic,
+.aplayer.aplayer-fixed.aplayer-narrow .aplayer-pic {
 	transition:
 		transform 0.3s ease,
 		box-shadow 0.3s ease,
 		border-radius 0.3s ease;
-	overflow: visible;
+	overflow: visible !important;
 	position: relative;
 	aspect-ratio: 1;
-	background: transparent !important;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	background: rgba(34, 197, 94, 0.1) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	border-radius: 50% !important;
 }
 
 /* 隐藏原封面图片 */
-.aplayer .aplayer-pic img {
+.aplayer .aplayer-pic img,
+.aplayer.aplayer-fixed .aplayer-pic img {
 	display: none !important;
+	opacity: 0 !important;
+	visibility: hidden !important;
 }
 
 /* 发光绿色音符 */
-.aplayer .aplayer-pic::before {
-	content: "♪";
-	font-size: 36px;
-	color: #22c55e;
+.aplayer .aplayer-pic::before,
+.aplayer.aplayer-fixed .aplayer-pic::before {
+	content: "♪" !important;
+	font-size: 36px !important;
+	color: #22c55e !important;
 	text-shadow:
 		0 0 10px #22c55e,
 		0 0 20px #22c55e,
 		0 0 30px #22c55e,
-		0 0 40px rgba(34, 197, 94, 0.5);
-	animation: music-note-glow 2s ease-in-out infinite;
-	position: absolute;
-	z-index: 10;
+		0 0 40px rgba(34, 197, 94, 0.5) !important;
+	animation: music-note-glow 2s ease-in-out infinite !important;
+	position: absolute !important;
+	z-index: 10 !important;
+	display: block !important;
 }
 
 /* 音符发光呼吸动画 */
@@ -261,16 +269,12 @@
 /* 隐藏播放/暂停按钮覆盖层 */
 .aplayer .aplayer-pic .aplayer-play,
 .aplayer .aplayer-pic .aplayer-pause,
-.aplayer .aplayer-pic .aplayer-button {
+.aplayer .aplayer-pic .aplayer-button,
+.aplayer.aplayer-fixed .aplayer-pic .aplayer-play,
+.aplayer.aplayer-fixed .aplayer-pic .aplayer-pause,
+.aplayer.aplayer-fixed .aplayer-pic .aplayer-button {
 	display: none !important;
-}
-
-/* 桌面端：圆形背景 */
-@media (hover: hover) {
-	.aplayer .aplayer-pic {
-		border-radius: 50%;
-		background: rgba(34, 197, 94, 0.1) !important;
-	}
+	opacity: 0 !important;
 }
 
 /* 缩小状态下禁用过渡动画 */

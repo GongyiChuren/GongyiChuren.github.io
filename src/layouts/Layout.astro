@@ -1019,5 +1019,35 @@ function disableAnimation() {
     initWallpaperMode();
     initThemeListener();
     initIconLoader();
-  }
+}
+</script>
+
+<script>
+function applyRandomPostCardGlow(el) {
+  const baseHue = Math.floor(Math.random() * 360);
+  const hue2 = (baseHue + 40 + Math.random() * 40) % 360;
+  const hue3 = (baseHue + 120 + Math.random() * 40) % 360;
+
+  el.style.setProperty("--post-card-hover-c1", `hsla(${baseHue}, 65%, 78%, 0.18)`);
+  el.style.setProperty("--post-card-hover-c2", `hsla(${hue2}, 65%, 80%, 0.14)`);
+  el.style.setProperty("--post-card-hover-c3", `hsla(${hue3}, 65%, 78%, 0.18)`);
+  el.style.setProperty("--post-card-hover-shadow-1", `hsla(${baseHue}, 60%, 70%, 0.16)`);
+  el.style.setProperty("--post-card-hover-shadow-2", `hsla(${hue2}, 60%, 70%, 0.08)`);
+}
+
+function bindPostCardHoverColors() {
+  const cards = document.querySelectorAll(".post-card-wrapper");
+  cards.forEach((card) => {
+    if (card.dataset.hoverColorBound === "true") return;
+    card.dataset.hoverColorBound = "true";
+    card.addEventListener("mouseenter", () => applyRandomPostCardGlow(card));
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bindPostCardHoverColors);
+} else {
+  bindPostCardHoverColors();
+}
+document.addEventListener("astro:after-swap", bindPostCardHoverColors);
 </script>

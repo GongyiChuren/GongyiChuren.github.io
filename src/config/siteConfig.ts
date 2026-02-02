@@ -16,17 +16,10 @@ export const siteConfig: SiteConfig = {
 	site_url: "https://gongyichuren.github.io",
 
 	// 站点描述
-	description:
-		"GongyiChuren的个人博客，分享技术与生活",
+	description: "GongyiChuren的个人博客，分享技术与生活",
 
 	// 站点关键词
-	keywords: [
-		"编程",
-		"技术",
-		"博客",
-		"学习",
-		"GongyiChuren",
-	],
+	keywords: ["编程", "技术", "博客", "学习", "GongyiChuren"],
 
 	// 主题色
 	themeColor: {
@@ -100,7 +93,7 @@ export const siteConfig: SiteConfig = {
 	sharePoster: true,
 
 	// OpenGraph图片功能,注意开启后要渲染很长时间，不建议本地调试的时候开启
-	generateOgImages: false,
+	generateOgImages: true,
 
 	// bangumi配置
 	bangumi: {

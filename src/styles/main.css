@@ -190,9 +190,23 @@ html {
     
     .card-base {
         @apply rounded-[var(--radius-large)] overflow-hidden bg-[var(--card-bg)] transition-colors duration-150;
+        /* 毛玻璃效果 - 轻微的背景模糊 */
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
     }
     .card-base-transparent {
         @apply rounded-[var(--radius-large)] overflow-hidden bg-[var(--card-bg-transparent)] backdrop-blur-sm transition-colors duration-150;
+    }
+    
+    /* 侧边栏小部件毛玻璃增强效果 */
+    widget-layout.card-base {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background: rgba(var(--card-bg-rgb, 255, 255, 255), 0.85);
+    }
+    
+    :root.dark widget-layout.card-base {
+        background: rgba(var(--card-bg-rgb, 30, 30, 30), 0.85);
     }
     
     /* 增加文章卡片的悬浮效果：上浮 + 投影加深 */

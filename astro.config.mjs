@@ -6,28 +6,28 @@ import swup from "@swup/astro";
 import { defineConfig } from "astro/config";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
+import katex from "katex";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeComponents from "rehype-components"; /* Render the custom directive content */
 import rehypeKatex from "rehype-katex";
-import katex from "katex";
 import "katex/dist/contrib/mhchem.mjs"; // 加载 mhchem 扩展
+import mdx from "@astrojs/mdx";
+import rehypeCallouts from "rehype-callouts";
 import rehypeSlug from "rehype-slug";
 import remarkDirective from "remark-directive"; /* Handle directives */
 import remarkMath from "remark-math";
-import rehypeCallouts from "rehype-callouts";
 import remarkSectionize from "remark-sectionize";
 import { expressiveCodeConfig, siteConfig } from "./src/config";
 import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-copy-button.js";
 // import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
 import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
+import rehypeEmailProtection from "./src/plugins/rehype-email-protection.mjs";
+import rehypeFigure from "./src/plugins/rehype-figure.mjs";
 import { rehypeMermaid } from "./src/plugins/rehype-mermaid.mjs";
 import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
 import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
 import { remarkMermaid } from "./src/plugins/remark-mermaid.js";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
-import mdx from "@astrojs/mdx";
-import rehypeEmailProtection from "./src/plugins/rehype-email-protection.mjs";
-import rehypeFigure from "./src/plugins/rehype-figure.mjs";
 
 // https://astro.build/config
 export default defineConfig({
@@ -62,7 +62,7 @@ export default defineConfig({
 		}),
 		icon({
 			include: {
-				"preprocess: vitePreprocess(),": ["*"],
+				"material-symbols": ["*"],
 				"fa6-brands": ["*"],
 				"fa6-regular": ["*"],
 				"fa6-solid": ["*"],

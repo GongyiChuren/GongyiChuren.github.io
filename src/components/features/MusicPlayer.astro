@@ -254,6 +254,21 @@ const processedLocalPlaylist =
         aplayer.audio?.addEventListener('play', updatePlayingState);
         aplayer.audio?.addEventListener('pause', updatePlayingState);
         aplayer.audio?.addEventListener('ended', updatePlayingState);
+        
+        // 点击页面其他地方自动收回播放器
+        document.addEventListener('click', (e) => {
+          const playerContainer = aplayer.container;
+          if (!playerContainer) return;
+          
+          // 如果点击的不是播放器内部，且播放器是展开状态，则收回
+          if (!playerContainer.contains(e.target) && !playerContainer.classList.contains('aplayer-narrow')) {
+            // 触发收回
+            const miniswitcher = playerContainer.querySelector('.aplayer-miniswitcher');
+            if (miniswitcher) {
+              miniswitcher.click();
+            }
+          }
+        });
       }
       
       // 立即设置右侧定位
@@ -299,6 +314,14 @@ const processedLocalPlaylist =
           const aplayer = metingElement.aplayer;
           if (aplayer?.container) {
             clearInterval(checkAPlayer);
+            
+            // 反转歌单顺序
+            if (aplayer.list && aplayer.list.audios && aplayer.list.audios.length > 1) {
+              const reversedList = [...aplayer.list.audios].reverse();
+              aplayer.list.clear();
+              reversedList.forEach(audio => aplayer.list.add(audio));
+            }
+            
             setupPlayerAfterInit(aplayer);
             resolve(true);
           }

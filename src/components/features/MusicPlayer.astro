@@ -315,11 +315,18 @@ const processedLocalPlaylist =
           if (aplayer?.container) {
             clearInterval(checkAPlayer);
             
-            // 反转歌单顺序
+            // 过滤不可用曲目并按字母排序
             if (aplayer.list && aplayer.list.audios && aplayer.list.audios.length > 1) {
-              const reversedList = [...aplayer.list.audios].reverse();
+              const sortedList = aplayer.list.audios
+                .filter(audio => audio && audio.url)
+                .slice()
+                .sort((a, b) => {
+                  const nameA = (a.name || "").trim();
+                  const nameB = (b.name || "").trim();
+                  return nameA.localeCompare(nameB, "en", { numeric: true, sensitivity: "base" });
+                });
               aplayer.list.clear();
-              reversedList.forEach(audio => aplayer.list.add(audio));
+              sortedList.forEach(audio => aplayer.list.add(audio));
             }
             
             setupPlayerAfterInit(aplayer);

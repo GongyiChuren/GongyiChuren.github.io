@@ -202,32 +202,74 @@
 }
 
 /* ===== 封面播放特效 ===== */
-/* 封面基础样式 - 默认正方形（触摸设备） */
+/* 封面基础样式 - 改为发光音符 */
 .aplayer .aplayer-pic {
 	transition:
 		transform 0.3s ease,
 		box-shadow 0.3s ease,
 		border-radius 0.3s ease;
-	overflow: hidden;
+	overflow: visible;
 	position: relative;
 	aspect-ratio: 1;
+	background: transparent !important;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
-/* 确保封面图片适配 */
+/* 隐藏原封面图片 */
 .aplayer .aplayer-pic img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
+	display: none !important;
 }
 
-/* 桌面端：圆形封面 */
+/* 发光绿色音符 */
+.aplayer .aplayer-pic::before {
+	content: "♪";
+	font-size: 36px;
+	color: #22c55e;
+	text-shadow:
+		0 0 10px #22c55e,
+		0 0 20px #22c55e,
+		0 0 30px #22c55e,
+		0 0 40px rgba(34, 197, 94, 0.5);
+	animation: music-note-glow 2s ease-in-out infinite;
+	position: absolute;
+	z-index: 10;
+}
+
+/* 音符发光呼吸动画 */
+@keyframes music-note-glow {
+	0%,
+	100% {
+		text-shadow:
+			0 0 10px #22c55e,
+			0 0 20px #22c55e,
+			0 0 30px #22c55e,
+			0 0 40px rgba(34, 197, 94, 0.5);
+		opacity: 1;
+	}
+	50% {
+		text-shadow:
+			0 0 15px #22c55e,
+			0 0 30px #22c55e,
+			0 0 45px #22c55e,
+			0 0 60px rgba(34, 197, 94, 0.6);
+		opacity: 0.9;
+	}
+}
+
+/* 隐藏播放/暂停按钮覆盖层 */
+.aplayer .aplayer-pic .aplayer-play,
+.aplayer .aplayer-pic .aplayer-pause,
+.aplayer .aplayer-pic .aplayer-button {
+	display: none !important;
+}
+
+/* 桌面端：圆形背景 */
 @media (hover: hover) {
 	.aplayer .aplayer-pic {
 		border-radius: 50%;
-	}
-
-	.aplayer .aplayer-pic img {
-		border-radius: 50%;
+		background: rgba(34, 197, 94, 0.1) !important;
 	}
 }
 
@@ -246,14 +288,14 @@
 	}
 }
 
-/* 亮色主题脉动动画 */
+/* 发光脉动动画 */
 @keyframes aplayer-cover-pulse {
 	0%,
 	100% {
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
 	}
 	50% {
-		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+		box-shadow: 0 0 25px rgba(34, 197, 94, 0.5);
 	}
 }
 
@@ -261,10 +303,10 @@
 @keyframes aplayer-cover-pulse-dark {
 	0%,
 	100% {
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+		box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
 	}
 	50% {
-		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+		box-shadow: 0 0 35px rgba(34, 197, 94, 0.6);
 	}
 }
 
@@ -273,7 +315,7 @@
 	/* 始终应用旋转动画，但通过 animation-play-state 控制播放/暂停 */
 	.aplayer .aplayer-pic {
 		animation:
-			aplayer-cover-rotate 20s linear infinite,
+			aplayer-cover-rotate 8s linear infinite,
 			aplayer-cover-pulse 2s ease-in-out infinite;
 		animation-play-state: paused;
 	}
@@ -294,7 +336,7 @@
 	:root.dark .aplayer[data-playing="true"] .aplayer-pic,
 	:root.dark .aplayer.aplayer-playing .aplayer-pic {
 		animation:
-			aplayer-cover-rotate 20s linear infinite,
+			aplayer-cover-rotate 8s linear infinite,
 			aplayer-cover-pulse-dark 2s ease-in-out infinite;
 		animation-play-state: running;
 	}
@@ -303,7 +345,7 @@
 	:root.dark .aplayer[data-playing="false"] .aplayer-pic,
 	:root.dark .aplayer.aplayer-pause .aplayer-pic {
 		animation:
-			aplayer-cover-rotate 20s linear infinite,
+			aplayer-cover-rotate 8s linear infinite,
 			aplayer-cover-pulse-dark 2s ease-in-out infinite;
 		animation-play-state: paused;
 	}

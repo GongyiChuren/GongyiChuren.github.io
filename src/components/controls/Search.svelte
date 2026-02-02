@@ -15,6 +15,9 @@ let isSearching = false;
 let initialized = false;
 let debounceTimer: NodeJS.Timeout;
 let showEasterNoResult = false;
+let isPanelOpen = false;
+let desktopInput: HTMLInputElement | null = null;
+let mobileInput: HTMLInputElement | null = null;
 const searchEasterKey = "fireflySearchEasterDate";
 const searchEasterText = "Nope.exe, but try a bolder keyword.";
 
@@ -34,27 +37,28 @@ const fakeResult: SearchResult[] = [
 ];
 
 // --- UI Logic ---
-const togglePanel = () => {
-	document
-		.getElementById("search-panel")
-		?.classList.toggle("float-panel-closed");
-};
-
-const setPanelVisibility = (show: boolean, isDesktop: boolean): void => {
+const setPanelVisibility = (show: boolean): void => {
 	const panel = document.getElementById("search-panel");
-	if (
-		!panel ||
-		(isDesktop && !keywordDesktop) ||
-		(!isDesktop && !keywordMobile)
-	)
-		return;
+	if (!panel) return;
+	isPanelOpen = show;
 	show
 		? panel.classList.remove("float-panel-closed")
 		: panel.classList.add("float-panel-closed");
 };
 
+const togglePanel = () => {
+	const nextOpen = !isPanelOpen;
+	setPanelVisibility(nextOpen);
+	if (nextOpen) {
+		const prefersDesktop = window.matchMedia("(min-width: 1024px)").matches;
+		requestAnimationFrame(() => {
+			(prefersDesktop ? desktopInput : mobileInput)?.focus();
+		});
+	}
+};
+
 const closeSearchPanel = (): void => {
-	document.getElementById("search-panel")?.classList.add("float-panel-closed");
+	setPanelVisibility(false);
 	keywordDesktop = "";
 	keywordMobile = "";
 	result = [];
@@ -69,7 +73,6 @@ const handleResultClick = (event: Event, url: string): void => {
 // --- Core Search Logic ---
 const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 	if (!keyword) {
-		setPanelVisibility(false, isDesktop);
 		result = [];
 		return;
 	}
@@ -92,11 +95,10 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 			}
 
 			result = searchResults;
-			setPanelVisibility(true, isDesktop);
+			if (isPanelOpen) setPanelVisibility(true);
 		} catch (error) {
 			console.error("Search error:", error);
 			result = [];
-			setPanelVisibility(false, isDesktop);
 		} finally {
 			isSearching = false;
 		}
@@ -149,29 +151,28 @@ $: if (initialized && (keywordMobile || keywordMobile === "")) {
 }
 </script>
 
-<!-- search bar for desktop view -->
-<div id="search-bar" class="hidden lg:flex transition-all items-center h-11 mr-2 rounded-lg
-      bg-black/[0.04] hover:bg-black/[0.06] focus-within:bg-black/[0.06]
-      dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
-">
-    <Icon icon="material-symbols:search"
-          class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-    <input placeholder="{i18n(I18nKey.search)}" bind:value={keywordDesktop}
-           on:focus={() => search(keywordDesktop, true)}
-           class="transition-all pl-10 text-sm bg-transparent outline-0
-         h-full w-40 active:w-60 focus:w-60 text-black/50 dark:text-white/50"
-    >
-</div>
-
-<!-- toggle btn for phone/tablet view -->
+<!-- toggle btn -->
 <button on:click={togglePanel} aria-label="Search Panel" id="search-switch"
-        class="btn-plain scale-animation lg:!hidden rounded-lg w-11 h-11 active:scale-90">
+        class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90">
     <Icon icon="material-symbols:search" class="text-[1.25rem]"></Icon>
 </button>
 
 <!-- search panel -->
 <div id="search-panel" class="float-panel float-panel-closed search-panel absolute md:w-[30rem]
 top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
+
+    <!-- search bar inside panel for desktop -->
+    <div id="search-bar-desktop" class="hidden lg:flex relative transition-all items-center h-11 rounded-xl
+      bg-black/[0.04] hover:bg-black/[0.06] focus-within:bg-black/[0.06]
+      dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
+  ">
+        <Icon icon="material-symbols:search"
+              class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
+        <input placeholder={i18n(I18nKey.search)} bind:value={keywordDesktop} bind:this={desktopInput}
+               class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
+               focus:w-60 text-black/50 dark:text-white/50"
+        >
+    </div>
 
     <!-- search bar inside panel for phone/tablet -->
     <div id="search-bar-inside" class="flex relative lg:hidden transition-all items-center h-11 rounded-xl
@@ -180,7 +181,7 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
   ">
         <Icon icon="material-symbols:search"
               class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-        <input placeholder={i18n(I18nKey.search)} bind:value={keywordMobile}
+        <input placeholder={i18n(I18nKey.search)} bind:value={keywordMobile} bind:this={mobileInput}
                class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
                focus:w-60 text-black/50 dark:text-white/50"
         >

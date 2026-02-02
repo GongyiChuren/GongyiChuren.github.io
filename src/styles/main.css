@@ -615,17 +615,17 @@ html {
   pointer-events: none;
 }
 
-.post-card-wrapper:hover::before {
-  opacity: 1;
-  background: linear-gradient(135deg, 
-    rgba(139, 92, 246, 0.3) 0%,
-    rgba(192, 132, 252, 0.2) 50%,
-    rgba(232, 121, 249, 0.3) 100%
-  );
-  box-shadow: 
-    0 0 20px rgba(139, 92, 246, 0.3),
-    0 0 40px rgba(139, 92, 246, 0.1);
-}
+  .post-card-wrapper:hover::before {
+    opacity: 1;
+    background: linear-gradient(135deg, 
+      rgba(139, 92, 246, 0.14) 0%,
+      rgba(192, 132, 252, 0.10) 50%,
+      rgba(232, 121, 249, 0.14) 100%
+    );
+    box-shadow: 
+      0 0 16px rgba(139, 92, 246, 0.16),
+      0 0 28px rgba(139, 92, 246, 0.08);
+  }
 
 /* 侧边栏卡片悬浮光晕 */
 widget-layout.card-base {

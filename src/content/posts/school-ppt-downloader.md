@@ -27,6 +27,11 @@ image: /posts/images/3.webp
 
 支持的后缀包括：`.ppt/.pptx/.pdf/.zip/.doc/.docx/.xls/.xlsx/.rar/.7z`。
 
+## 项目仓库：
+```text
+https://github.com/GongyiChuren/School-PPT-Downloader
+```
+
 ## 安装
 
 1. 安装 Tampermonkey 扩展

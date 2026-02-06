@@ -238,17 +238,23 @@ function clearMeteorTimers() {
 function createMeteor() {
     const meteor = document.createElement('div');
     meteor.className = 'meteor';
-    const startX = Math.random() * window.innerWidth;
+    const startX = -60 + Math.random() * (window.innerWidth + 120);
     const startY = -20 - Math.random() * 80;
-    const angle = -60 + Math.random() * 35;
-    const travelX = 520 + Math.random() * 640;
-    const travelY = 420 + Math.random() * 720;
+    const travelX = 480 + Math.random() * 620;
+    const travelY = 340 + Math.random() * 580;
+    const angle = Math.atan2(travelY, travelX) * (180 / Math.PI);
+    const hue = Math.floor(Math.random() * 360);
+    const tailLength = 96 + Math.random() * 46;
     meteor.style.left = `${startX}px`;
     meteor.style.top = `${startY}px`;
-    meteor.style.animationDuration = `${1.0 + Math.random() * 0.9}s`;
+    meteor.style.animationDuration = `${0.75 + Math.random() * 0.55}s`;
     meteor.style.setProperty('--meteor-rot', `${angle}deg`);
     meteor.style.setProperty('--meteor-dx', `${travelX}px`);
     meteor.style.setProperty('--meteor-dy', `${travelY}px`);
+    meteor.style.setProperty('--meteor-len', `${tailLength}px`);
+    meteor.style.setProperty('--meteor-color-a', `hsla(${hue}, 100%, 78%, 0.95)`);
+    meteor.style.setProperty('--meteor-color-b', `hsla(${(hue + 24) % 360}, 100%, 70%, 0.72)`);
+    meteor.style.setProperty('--meteor-color-c', `hsla(${(hue + 42) % 360}, 100%, 65%, 0.08)`);
     document.body.appendChild(meteor);
     meteor.addEventListener('animationend', () => meteor.remove());
 }
@@ -257,10 +263,14 @@ function startMeteorShower() {
     document.body.classList.add('easter-meteor-shower');
     createMeteor();
     createMeteor();
+    createMeteor();
+    createMeteor();
     meteorInterval = setInterval(() => {
         createMeteor();
-        if (Math.random() > 0.4) createMeteor();
-    }, 140);
+        createMeteor();
+        if (Math.random() > 0.35) createMeteor();
+        if (Math.random() > 0.65) createMeteor();
+    }, 95);
 }
 
 if (brand && window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
@@ -281,26 +291,23 @@ if (brand && window.matchMedia('(prefers-reduced-motion: no-preference)').matche
   }
 
   .navbar-brand:hover .navbar-logo {
-    animation: logo-jitter 0.18s steps(2, end) infinite;
-    transform: scale(1.18);
+    animation: logo-hover-float 1.35s ease-in-out infinite;
+    transform-origin: 50% 58%;
   }
 
-  @keyframes logo-jitter {
-    0% { transform: translate(0, 0) scale(1.02); }
-    20% { transform: translate(1px, -1px) scale(1.05); }
-    40% { transform: translate(-1px, 1px) scale(1.08); }
-    60% { transform: translate(1px, 0) scale(1.11); }
-    80% { transform: translate(-1px, -1px) scale(1.14); }
-    100% { transform: translate(0, 0) scale(1.18); }
+  @keyframes logo-hover-float {
+    0%, 100% { transform: translateY(0) scale(1.08) rotate(0deg); }
+    50% { transform: translateY(-2px) scale(1.14) rotate(-2deg); }
   }
 
   .easter-meteor-shower .meteor {
     position: fixed;
-    width: 180px;
-    height: 3px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0));
+    width: var(--meteor-len, 116px);
+    height: 2px;
+    background: linear-gradient(90deg, var(--meteor-color-a, rgba(255,255,255,0.95)), var(--meteor-color-b, rgba(255,255,255,0.45)) 48%, var(--meteor-color-c, rgba(255,255,255,0)));
+    border-radius: 999px;
     opacity: 1;
-    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.75));
+    filter: drop-shadow(0 0 5px var(--meteor-color-b, rgba(255, 255, 255, 0.65)));
     transform: rotate(var(--meteor-rot, -25deg));
     pointer-events: none;
     z-index: 2147483647;

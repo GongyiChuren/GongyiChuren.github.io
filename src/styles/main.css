@@ -23,7 +23,7 @@ html {
     left: 0;
     right: 0;
     height: 180px;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.3) 30%, rgba(255, 255, 255, 0.15) 60%, rgba(255, 255, 255, 0.05) 80%, transparent 100%);
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.22) 30%, rgba(255, 255, 255, 0.1) 60%, rgba(255, 255, 255, 0.03) 80%, transparent 100%);
     pointer-events: none;
     z-index: 20;
     transition: all var(--duration-medium) var(--ease-standard);
@@ -31,7 +31,7 @@ html {
 
 /* 暗色主题下的渐变高光效果 */
 :root.dark .top-gradient-highlight {
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 30%, rgba(0, 0, 0, 0.15) 60%, rgba(0, 0, 0, 0.05) 80%, transparent 100%);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0.22) 30%, rgba(0, 0, 0, 0.1) 60%, rgba(0, 0, 0, 0.03) 80%, transparent 100%);
 }
 
 @layer components {
@@ -578,7 +578,7 @@ html {
   position: fixed;
   border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, rgba(139, 92, 246, 0.1) 50%, transparent 70%);
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.28) 0%, rgba(59, 130, 246, 0.1) 50%, transparent 70%);
   transform: translate(-50%, -50%) scale(0);
   animation: ripple-expand 0.6s ease-out forwards;
   z-index: 9999;
@@ -606,8 +606,8 @@ html {
     inset: -2px;
     border-radius: calc(var(--radius-large) + 2px);
     background: linear-gradient(135deg, 
-      var(--post-card-hover-c1, rgba(139, 92, 246, 0)) 0%,
-      var(--post-card-hover-c2, rgba(139, 92, 246, 0)) 100%
+      var(--post-card-hover-c1, rgba(37, 99, 235, 0)) 0%,
+      var(--post-card-hover-c2, rgba(37, 99, 235, 0)) 100%
     );
     opacity: 0;
     transition: opacity 0.3s ease, background 0.3s ease;
@@ -618,13 +618,13 @@ html {
   .post-card-wrapper:hover::before {
       opacity: 1;
       background: linear-gradient(135deg, 
-        var(--post-card-hover-c1, rgba(139, 92, 246, 0.14)) 0%,
-        var(--post-card-hover-c2, rgba(192, 132, 252, 0.10)) 50%,
-        var(--post-card-hover-c3, rgba(232, 121, 249, 0.14)) 100%
+        var(--post-card-hover-c1, rgba(37, 99, 235, 0.1)) 0%,
+        var(--post-card-hover-c2, rgba(59, 130, 246, 0.08)) 50%,
+        var(--post-card-hover-c3, rgba(56, 189, 248, 0.1)) 100%
       );
       box-shadow: 
-        0 0 16px var(--post-card-hover-shadow-1, rgba(139, 92, 246, 0.16)),
-        0 0 28px var(--post-card-hover-shadow-2, rgba(139, 92, 246, 0.08));
+        0 0 16px var(--post-card-hover-shadow-1, rgba(37, 99, 235, 0.12)),
+        0 0 28px var(--post-card-hover-shadow-2, rgba(14, 116, 144, 0.06));
     }
 
 /* 侧边栏卡片悬浮光晕 */
@@ -635,11 +635,11 @@ widget-layout.card-base {
 
 widget-layout.card-base:hover {
   box-shadow: 
-    0 0 15px rgba(139, 92, 246, 0.2),
-    0 0 30px rgba(139, 92, 246, 0.1);
+    0 0 15px rgba(37, 99, 235, 0.14),
+    0 0 30px rgba(37, 99, 235, 0.06);
 }
 
-/* 紫色主题滚动条 */
+/* 深海蓝主题滚动条 */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -651,8 +651,8 @@ widget-layout.card-base:hover {
 
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, 
-    rgba(139, 92, 246, 0.5) 0%,
-    rgba(167, 139, 250, 0.5) 100%
+    rgba(37, 99, 235, 0.45) 0%,
+    rgba(14, 116, 144, 0.45) 100%
   );
   border-radius: 5px;
   border: 2px solid transparent;
@@ -661,8 +661,8 @@ widget-layout.card-base:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, 
-    rgba(139, 92, 246, 0.7) 0%,
-    rgba(167, 139, 250, 0.7) 100%
+    rgba(37, 99, 235, 0.6) 0%,
+    rgba(14, 116, 144, 0.6) 100%
   );
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -675,14 +675,14 @@ widget-layout.card-base:hover {
 /* Firefox 滚动条 */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.5) transparent;
+  scrollbar-color: rgba(37, 99, 235, 0.45) transparent;
 }
 
 /* 深色模式滚动条 */
 :root.dark ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, 
-    rgba(167, 139, 250, 0.6) 0%,
-    rgba(192, 132, 252, 0.6) 100%
+    rgba(96, 165, 250, 0.58) 0%,
+    rgba(34, 211, 238, 0.52) 100%
   );
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -690,8 +690,8 @@ widget-layout.card-base:hover {
 
 :root.dark ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, 
-    rgba(167, 139, 250, 0.8) 0%,
-    rgba(192, 132, 252, 0.8) 100%
+    rgba(96, 165, 250, 0.72) 0%,
+    rgba(34, 211, 238, 0.68) 100%
   );
   border: 2px solid transparent;
   background-clip: padding-box;

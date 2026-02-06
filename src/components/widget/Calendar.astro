@@ -56,6 +56,10 @@ const initYear = now.getFullYear();
 const initMonth = now.getMonth();
 const initFirstDay = new Date(initYear, initMonth, 1).getDay();
 const initDaysInMonth = new Date(initYear, initMonth + 1, 0).getDate();
+const initialHeaderText =
+	currentLang.startsWith("zh") || currentLang.startsWith("ja")
+		? `${initYear}${yearText}${monthNames[initMonth]}`
+		: `${monthNames[initMonth]} ${initYear}`;
 const initialCalendarDays = [];
 for (let i = 0; i < initFirstDay; i++) {
 	initialCalendarDays.push(null);
@@ -71,7 +75,7 @@ for (let day = 1; day <= initDaysInMonth; day++) {
         <button id="prev-month-btn" class="btn-plain rounded-lg w-8 h-8 flex items-center justify-center hover:bg-[var(--btn-plain-bg-hover)] transition-colors" aria-label="Previous Month">
             <Icon name="fa6-solid:chevron-left" class="text-sm" />
         </button>
-        <div id="current-month-display" class="text-lg font-bold text-neutral-900 dark:text-neutral-100 cursor-pointer hover:text-[var(--primary)] transition-colors select-none"></div>
+        <div id="current-month-display" class="text-lg font-bold text-neutral-900 dark:text-neutral-100 cursor-pointer hover:text-[var(--primary)] transition-colors select-none">{initialHeaderText}</div>
         <div class="flex gap-2">
             <button id="reset-month-btn" class="btn-plain rounded-lg w-8 h-8 flex items-center justify-center hover:bg-[var(--btn-plain-bg-hover)] transition-colors" aria-label="Back to Today">
                 <Icon name="fa6-solid:arrow-rotate-left" class="text-sm" />
@@ -132,7 +136,7 @@ for (let day = 1; day <= initDaysInMonth; day++) {
   </div>
 </WidgetLayout>
 
-<script is:inline define:vars={{ monthNames, weekDays, yearText, currentLang, calendarDataUrl, postUrlPrefix }}>
+<script is:inline define:vars={{ monthNames, weekDays, yearText, currentLang, calendarDataUrl, postUrlPrefix, enablePostRecords }}>
   // State variables
   let displayYear = new Date().getFullYear();
   let displayMonth = new Date().getMonth();

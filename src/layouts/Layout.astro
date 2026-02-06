@@ -560,6 +560,13 @@ function disableAnimation() {
 */
 
   const bannerEnabled = !!document.getElementById("banner-wrapper");
+  const layoutRuntime = ((window as any).__fireflyLayoutRuntime ||= {
+    setupBound: false,
+    outsideCloseBound: false,
+    scrollBound: false,
+    swupEnableBound: false,
+    postCardSwapBound: false,
+  });
 
   function setClickOutsideToClose(panel: string, ignores: string[]) {
       document.addEventListener("click", (event) => {
@@ -576,28 +583,31 @@ function disableAnimation() {
           panelDom.classList.add("float-panel-closed");
       });
   }
-  setClickOutsideToClose("display-setting", [
-    "display-setting",
-    "display-settings-switch",
-  ]);
-  setClickOutsideToClose("nav-menu-panel", [
-    "nav-menu-panel",
-    "nav-menu-switch",
-  ]);
-  setClickOutsideToClose("search-panel", [
-    "search-panel",
-    "search-bar-desktop",
-    "search-bar-inside",
-    "search-switch",
-  ]);
-  setClickOutsideToClose("wallpaper-mode-panel", [
-    "wallpaper-mode-panel",
-    "wallpaper-mode-switch",
-  ]);
-  setClickOutsideToClose("theme-mode-panel", [
-    "theme-mode-panel",
-    "scheme-switch",
-  ]);
+  if (!layoutRuntime.outsideCloseBound) {
+    setClickOutsideToClose("display-setting", [
+      "display-setting",
+      "display-settings-switch",
+    ]);
+    setClickOutsideToClose("nav-menu-panel", [
+      "nav-menu-panel",
+      "nav-menu-switch",
+    ]);
+    setClickOutsideToClose("search-panel", [
+      "search-panel",
+      "search-bar-desktop",
+      "search-bar-inside",
+      "search-switch",
+    ]);
+    setClickOutsideToClose("wallpaper-mode-panel", [
+      "wallpaper-mode-panel",
+      "wallpaper-mode-switch",
+    ]);
+    setClickOutsideToClose("theme-mode-panel", [
+      "theme-mode-panel",
+      "scheme-switch",
+    ]);
+    layoutRuntime.outsideCloseBound = true;
+  }
 
   function initCustomScrollbar() {
     // 只处理katex元素的滚动条，使用浏览器原生滚动条
@@ -646,6 +656,8 @@ function disableAnimation() {
   }
 
   const setup = () => {
+    if (layoutRuntime.setupBound) return;
+    layoutRuntime.setupBound = true;
     // TODO: temp solution to change the height of the banner
     /*
 	window.swup.hooks.on('animation:out:start', () => {
@@ -917,7 +929,8 @@ function disableAnimation() {
   };
   if (window?.swup?.hooks) {
     setup();
-  } else {
+  } else if (!layoutRuntime.swupEnableBound) {
+    layoutRuntime.swupEnableBound = true;
     document.addEventListener("swup:enable", setup);
   }
 
@@ -979,16 +992,19 @@ function disableAnimation() {
 
   // 使用优化的滚动性能处理
   let scrollTimeout: number;
-  window.addEventListener(
-    "scroll",
-    () => {
-      if (scrollTimeout) {
-        cancelAnimationFrame(scrollTimeout);
-      }
-      scrollTimeout = requestAnimationFrame(scrollFunction);
-    },
-    { passive: true }
-  );
+  if (!layoutRuntime.scrollBound) {
+    layoutRuntime.scrollBound = true;
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (scrollTimeout) {
+          cancelAnimationFrame(scrollTimeout);
+        }
+        scrollTimeout = requestAnimationFrame(scrollFunction);
+      },
+      { passive: true }
+    );
+  }
 
   window.onresize = () => {
     // calculate the --banner-height-extend, which needs to be a multiple of 4 to avoid blurry text
@@ -1058,5 +1074,8 @@ if (document.readyState === "loading") {
 } else {
   bindPostCardHoverColors();
 }
-document.addEventListener("astro:after-swap", bindPostCardHoverColors);
+if (!layoutRuntime.postCardSwapBound) {
+  layoutRuntime.postCardSwapBound = true;
+  document.addEventListener("astro:after-swap", bindPostCardHoverColors);
+}
 </script>

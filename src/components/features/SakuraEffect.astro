@@ -9,6 +9,12 @@ const config = { ...sakuraConfig, enable: true };
 <script is:inline>
     // 紫色萤火虫飘动效果
     (function() {
+        const fireflyRuntime = (window.__fireflyEffectRuntime = window.__fireflyEffectRuntime || {
+            resizeBound: false,
+            pageLoadBound: false,
+            swupBound: false,
+        });
+
         console.log("✨ Firefly Effect Initializing...");
 
         const CONTAINER_ID = "firefly-container";
@@ -146,9 +152,16 @@ const config = { ...sakuraConfig, enable: true };
             init();
         }
 
-        window.addEventListener('resize', onResize);
-        document.addEventListener('astro:page-load', init);
-        if (window.swup) {
+        if (!fireflyRuntime.resizeBound) {
+            fireflyRuntime.resizeBound = true;
+            window.addEventListener('resize', onResize);
+        }
+        if (!fireflyRuntime.pageLoadBound) {
+            fireflyRuntime.pageLoadBound = true;
+            document.addEventListener('astro:page-load', init);
+        }
+        if (window.swup && !fireflyRuntime.swupBound) {
+            fireflyRuntime.swupBound = true;
             window.swup.hooks.on('content:replace', init);
         }
     })();

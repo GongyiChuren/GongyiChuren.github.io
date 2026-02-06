@@ -44,17 +44,28 @@
 </style>
 
 <script>
+  const cursorRuntime = ((window as any).__fireflyCursorRuntime ||= {
+    initialized: false,
+    clickRippleBound: false,
+  });
+
   const cursorDot = document.getElementById('cursor-dot');
   const cursorOutline = document.getElementById('cursor-outline');
 
-  if (cursorDot && cursorOutline) {
+  if (!cursorRuntime.initialized && cursorDot && cursorOutline) {
+    cursorRuntime.initialized = true;
+
     let mouseX = 0;
     let mouseY = 0;
     let outlineX = 0;
     let outlineY = 0;
     let lastMoveAt = 0;
     let isOverComment = false;
+    let commentTarget: Element | null = null;
+    let cachedRect: DOMRect | null = null;
+    let rectTime = 0;
     const idleHideDelayMs = 140;
+    const rectCacheMs = 120;
 
     const showCursor = () => {
       cursorDot.style.opacity = '1';
@@ -66,32 +77,57 @@
       cursorOutline.style.opacity = '0';
     };
 
-    const bindHoverHideTargets = () => {
-      const targets = document.querySelectorAll('iframe, giscus-widget, [data-cursor-hide]');
-      targets.forEach((target) => {
-        if (!target.dataset.cursorVisibilityAdded) {
-          target.dataset.cursorVisibilityAdded = 'true';
-          target.addEventListener('mouseenter', hideCursor);
-          target.addEventListener('mouseleave', showCursor);
-        }
+    const onHoverIn = () => {
+      cursorOutline.style.transform = 'translate(-50%, -50%) scale(1.35)';
+      cursorOutline.style.borderWidth = '3px';
+    };
+
+    const onHoverOut = () => {
+      cursorOutline.style.transform = 'translate(-50%, -50%) scale(1)';
+      cursorOutline.style.borderWidth = '2px';
+    };
+
+    const bindHoverElements = (root: ParentNode) => {
+      const elements = root.querySelectorAll('a, button, [role="button"]');
+      elements.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        if (htmlEl.dataset.cursorListenerAdded) return;
+        htmlEl.dataset.cursorListenerAdded = 'true';
+        htmlEl.addEventListener('mouseenter', onHoverIn);
+        htmlEl.addEventListener('mouseleave', onHoverOut);
       });
     };
 
-    // 鼠标移动事件
+    const bindHoverHideTargets = (root: ParentNode = document) => {
+      const targets = root.querySelectorAll('iframe, giscus-widget, [data-cursor-hide]');
+      targets.forEach((target) => {
+        const htmlTarget = target as HTMLElement;
+        if (htmlTarget.dataset.cursorVisibilityAdded) return;
+        htmlTarget.dataset.cursorVisibilityAdded = 'true';
+        htmlTarget.addEventListener('mouseenter', hideCursor);
+        htmlTarget.addEventListener('mouseleave', showCursor);
+      });
+      commentTarget = document.querySelector('[data-cursor-hide]');
+      cachedRect = null;
+    };
+
     document.addEventListener('mousemove', (e) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
       lastMoveAt = performance.now();
 
-      const commentTarget = document.querySelector('[data-cursor-hide]');
       if (commentTarget) {
-        const rect = commentTarget.getBoundingClientRect();
+        const now = performance.now();
+        if (!cachedRect || now - rectTime > rectCacheMs) {
+          cachedRect = commentTarget.getBoundingClientRect();
+          rectTime = now;
+        }
         const padding = 18;
         isOverComment =
-          mouseX >= rect.left - padding &&
-          mouseX <= rect.right + padding &&
-          mouseY >= rect.top - padding &&
-          mouseY <= rect.bottom + padding;
+          mouseX >= cachedRect.left - padding &&
+          mouseX <= cachedRect.right + padding &&
+          mouseY >= cachedRect.top - padding &&
+          mouseY <= cachedRect.bottom + padding;
       } else {
         isOverComment = false;
       }
@@ -101,15 +137,12 @@
         return;
       }
 
-      // 立即更新点的位置
       showCursor();
       cursorDot.style.left = `${mouseX}px`;
       cursorDot.style.top = `${mouseY}px`;
     });
 
-    // 平滑跟随的外圈
     function animateOutline() {
-      // 缓动效果 - 增加系数从 0.15 到 0.25 加快跟随速度
       outlineX += (mouseX - outlineX) * 0.45;
       outlineY += (mouseY - outlineY) * 0.45;
 
@@ -129,10 +162,7 @@
 
     animateOutline();
 
-    // 鼠标进入页面
     document.addEventListener('mouseenter', showCursor);
-
-    // 鼠标离开页面
     document.addEventListener('mouseleave', hideCursor);
     window.addEventListener('blur', hideCursor);
     window.addEventListener('mouseout', (e) => {
@@ -144,86 +174,49 @@
       if (document.hidden) hideCursor();
     });
 
-    // 鼠标按下时缩小外圈
     document.addEventListener('mousedown', () => {
-      if (cursorOutline) {
-        cursorOutline.style.transform = 'translate(-50%, -50%) scale(0.8)';
-      }
+      cursorOutline.style.transform = 'translate(-50%, -50%) scale(0.8)';
     });
 
-    // 鼠标松开时恢复外圈
     document.addEventListener('mouseup', () => {
-      if (cursorOutline) {
-        cursorOutline.style.transform = 'translate(-50%, -50%) scale(1)';
+      cursorOutline.style.transform = 'translate(-50%, -50%) scale(1)';
+    });
+
+    bindHoverElements(document);
+    bindHoverHideTargets(document);
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        mutation.addedNodes.forEach((node) => {
+          if (!(node instanceof HTMLElement)) return;
+          bindHoverElements(node);
+          bindHoverHideTargets(node);
+        });
       }
     });
 
-    // 悬停在链接或按钮上时放大外圈
-    const hoverElements = document.querySelectorAll('a, button, [role="button"]');
-    hoverElements.forEach((el) => {
-      el.addEventListener('mouseenter', () => {
-        if (cursorOutline) {
-          cursorOutline.style.transform = 'translate(-50%, -50%) scale(1.35)';
-          cursorOutline.style.borderWidth = '3px';
-        }
-      });
-
-      el.addEventListener('mouseleave', () => {
-        if (cursorOutline) {
-          cursorOutline.style.transform = 'translate(-50%, -50%) scale(1)';
-          cursorOutline.style.borderWidth = '2px';
-        }
-      });
-    });
-
-    // 监听动态添加的元素
-    const observer = new MutationObserver(() => {
-      const newHoverElements = document.querySelectorAll('a, button, [role="button"]');
-      newHoverElements.forEach((el) => {
-        if (!el.dataset.cursorListenerAdded) {
-          el.dataset.cursorListenerAdded = 'true';
-
-          el.addEventListener('mouseenter', () => {
-            if (cursorOutline) {
-              cursorOutline.style.transform = 'translate(-50%, -50%) scale(1.35)';
-              cursorOutline.style.borderWidth = '3px';
-            }
-          });
-
-          el.addEventListener('mouseleave', () => {
-            if (cursorOutline) {
-              cursorOutline.style.transform = 'translate(-50%, -50%) scale(1)';
-              cursorOutline.style.borderWidth = '2px';
-            }
-          });
-        }
-      });
-      bindHoverHideTargets();
-    });
-
-    bindHoverHideTargets();
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
-  // 点击涟漪特效
   function createRipple(e: MouseEvent) {
-    // 忽略移动端
     if (window.innerWidth <= 768) return;
-    
+
     const ripple = document.createElement('div');
     ripple.className = 'click-ripple';
     ripple.style.left = `${e.clientX}px`;
     ripple.style.top = `${e.clientY}px`;
     ripple.style.width = '150px';
     ripple.style.height = '150px';
-    
+
     document.body.appendChild(ripple);
-    
-    // 动画结束后移除元素
+
     ripple.addEventListener('animationend', () => {
       ripple.remove();
     });
   }
 
-  document.addEventListener('click', createRipple);
+  if (!cursorRuntime.clickRippleBound) {
+    cursorRuntime.clickRippleBound = true;
+    document.addEventListener('click', createRipple);
+  }
 </script>

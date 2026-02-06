@@ -35,6 +35,12 @@ const size = config.size || { width: 280, height: 250 };
 <MessageBox />
 
 <script is:inline define:vars={{ config, modelPathUrl: url(config.model.path), sdkPath: url("/pio/static/live2d-sdk/live2d.min.js") }}>
+  const live2dRuntime = (window.__fireflyLive2DRuntime = window.__fireflyLive2DRuntime || {
+    resizeBound: false,
+    swupBound: false,
+    swupEnableBound: false,
+  });
+
   let motionGroups = {};
   let hitAreas = {};
   let currentMotionGroup = "idle";
@@ -402,20 +408,28 @@ const size = config.size || { width: 280, height: 250 };
   }
 
   // Handle window resize for responsive behavior
-  window.addEventListener("resize", handleResponsive);
+  if (!live2dRuntime.resizeBound) {
+    live2dRuntime.resizeBound = true;
+    window.addEventListener("resize", handleResponsive);
+  }
 
   // 监听 Swup 页面切换事件（如果使用了 Swup）
   if (typeof window.swup !== "undefined" && window.swup.hooks) {
-    window.swup.hooks.on("content:replace", () => {
-      // 只更新响应式显示，不重新创建模型
-      setTimeout(() => {
-        handleResponsive();
-      }, 100);
-    });
-  } else {
+    if (!live2dRuntime.swupBound) {
+      live2dRuntime.swupBound = true;
+      window.swup.hooks.on("content:replace", () => {
+        // 只更新响应式显示，不重新创建模型
+        setTimeout(() => {
+          handleResponsive();
+        }, 100);
+      });
+    }
+  } else if (!live2dRuntime.swupEnableBound) {
+    live2dRuntime.swupEnableBound = true;
     // 如果 Swup 还未加载，监听启用事件
     document.addEventListener("swup:enable", () => {
-      if (window.swup && window.swup.hooks) {
+      if (window.swup && window.swup.hooks && !live2dRuntime.swupBound) {
+        live2dRuntime.swupBound = true;
         window.swup.hooks.on("content:replace", () => {
           setTimeout(() => {
             handleResponsive();

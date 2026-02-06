@@ -63,7 +63,7 @@ let links: NavBarLink[] = navBarConfig.links.map(
         "!overflow-visible h-[4.5rem] mx-auto flex items-center px-4 relative",
         navbarWidthFull ? "" : "justify-between max-w-[var(--page-width)]"
     ]}>
-        <a href={url('/')} class="navbar-brand btn-plain scale-animation rounded-lg h-[3.25rem] pr-2 pl-0 ml-0 font-bold active:scale-95">
+        <a href={url('/')} class="navbar-brand btn-plain rounded-lg h-[3.25rem] pr-2 pl-0 ml-0 font-bold active:scale-95">
             <div class:list={[
                 "flex flex-row items-center text-md",
                 siteConfig.navbar.followTheme ? "text-[var(--primary)]" : "dark:text-white text-black"
@@ -268,9 +268,10 @@ function startMeteorShower() {
     meteorInterval = setInterval(() => {
         createMeteor();
         createMeteor();
-        if (Math.random() > 0.35) createMeteor();
-        if (Math.random() > 0.65) createMeteor();
-    }, 95);
+        createMeteor();
+        if (Math.random() > 0.2) createMeteor();
+        if (Math.random() > 0.5) createMeteor();
+    }, 70);
 }
 
 if (brand && window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
@@ -288,22 +289,25 @@ if (brand && window.matchMedia('(prefers-reduced-motion: no-preference)').matche
   .navbar-logo {
     transition: transform 0.6s ease;
     will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
   }
 
   .navbar-brand:hover .navbar-logo {
-    animation: logo-hover-float 1.35s ease-in-out infinite;
+    animation: logo-jitter-x 0.1s linear infinite;
     transform-origin: 50% 58%;
   }
 
-  @keyframes logo-hover-float {
-    0%, 100% { transform: translateY(0) scale(1.08) rotate(0deg); }
-    50% { transform: translateY(-2px) scale(1.14) rotate(-2deg); }
+  @keyframes logo-jitter-x {
+    0% { transform: translateX(-1.5px) scale(1.1); }
+    50% { transform: translateX(1.5px) scale(1.1); }
+    100% { transform: translateX(-1.5px) scale(1.1); }
   }
 
   .easter-meteor-shower .meteor {
     position: fixed;
     width: var(--meteor-len, 116px);
-    height: 2px;
+    height: 3.5px;
     background: linear-gradient(90deg, var(--meteor-color-a, rgba(255,255,255,0.95)), var(--meteor-color-b, rgba(255,255,255,0.45)) 48%, var(--meteor-color-c, rgba(255,255,255,0)));
     border-radius: 999px;
     opacity: 1;

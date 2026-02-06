@@ -27,11 +27,87 @@
     box-shadow: 0 0 6px hsl(var(--hue), 70%, 50%);
   }
 
+  .cursor-trail {
+    pointer-events: none;
+    position: fixed;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: hsl(var(--hue), 72%, 56%);
+    box-shadow: 0 0 4px hsl(var(--hue), 72%, 56%);
+    transform: translate(-50%, -50%);
+    opacity: 0.45;
+    z-index: 9999;
+    animation: cursor-trail-fade 0.42s ease-out forwards;
+  }
+
+  @keyframes cursor-trail-fade {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.45; }
+    100% { transform: translate(-50%, -50%) scale(0.35); opacity: 0; }
+  }
+
   .cursor-outline {
     width: 28px;
     height: 28px;
     border: 2px solid hsl(var(--hue), 70%, 50%);
     transition: opacity 0.2s ease-in-out, transform 0.08s ease-in-out, border-color 0.2s ease-in-out;
+  }
+
+  .click-burst {
+    position: fixed;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .click-ring {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 2px solid hsl(var(--hue), 78%, 58%);
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.85;
+    animation: click-ring-out 0.52s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+  }
+
+  .click-core {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: hsl(var(--hue), 82%, 62%);
+    box-shadow: 0 0 10px hsl(var(--hue), 82%, 62%);
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.9;
+    animation: click-core-pop 0.34s ease-out forwards;
+  }
+
+  .click-spark {
+    position: absolute;
+    width: 6px;
+    height: 2px;
+    border-radius: 999px;
+    background: hsl(var(--spark-hue, var(--hue)), 90%, 68%);
+    transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateX(0);
+    opacity: 0.95;
+    animation: click-spark-fly 0.5s ease-out forwards;
+  }
+
+  @keyframes click-ring-out {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.85; }
+    100% { transform: translate(-50%, -50%) scale(4.2); opacity: 0; }
+  }
+
+  @keyframes click-core-pop {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+  }
+
+  @keyframes click-spark-fly {
+    0% { transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateX(0); opacity: 0.95; }
+    100% { transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateX(var(--spark-distance, 24px)); opacity: 0; }
   }
 
   /* 隐藏在移动设备上 */
@@ -64,8 +140,10 @@
     let commentTarget: Element | null = null;
     let cachedRect: DOMRect | null = null;
     let rectTime = 0;
+    let lastTrailAt = 0;
     const idleHideDelayMs = 140;
     const rectCacheMs = 120;
+    const trailIntervalMs = 22;
 
     const showCursor = () => {
       cursorDot.style.opacity = '1';
@@ -111,6 +189,21 @@
       cachedRect = null;
     };
 
+    const emitTrail = (x: number, y: number) => {
+      const now = performance.now();
+      if (now - lastTrailAt < trailIntervalMs) return;
+      lastTrailAt = now;
+
+      const trail = document.createElement('div');
+      trail.className = 'cursor-trail';
+      trail.style.left = `${x}px`;
+      trail.style.top = `${y}px`;
+      document.body.appendChild(trail);
+      trail.addEventListener('animationend', () => {
+        trail.remove();
+      });
+    };
+
     document.addEventListener('mousemove', (e) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
@@ -140,6 +233,7 @@
       showCursor();
       cursorDot.style.left = `${mouseX}px`;
       cursorDot.style.top = `${mouseY}px`;
+      emitTrail(mouseX, mouseY);
     });
 
     function animateOutline() {
@@ -201,18 +295,31 @@
   function createRipple(e: MouseEvent) {
     if (window.innerWidth <= 768) return;
 
-    const ripple = document.createElement('div');
-    ripple.className = 'click-ripple';
-    ripple.style.left = `${e.clientX}px`;
-    ripple.style.top = `${e.clientY}px`;
-    ripple.style.width = '150px';
-    ripple.style.height = '150px';
+    const burst = document.createElement('div');
+    burst.className = 'click-burst';
+    burst.style.left = `${e.clientX}px`;
+    burst.style.top = `${e.clientY}px`;
 
-    document.body.appendChild(ripple);
+    const ring = document.createElement('span');
+    ring.className = 'click-ring';
+    burst.appendChild(ring);
 
-    ripple.addEventListener('animationend', () => {
-      ripple.remove();
-    });
+    const core = document.createElement('span');
+    core.className = 'click-core';
+    burst.appendChild(core);
+
+    const sparks = 8;
+    for (let i = 0; i < sparks; i++) {
+      const spark = document.createElement('span');
+      spark.className = 'click-spark';
+      spark.style.setProperty('--spark-angle', `${(360 / sparks) * i}deg`);
+      spark.style.setProperty('--spark-distance', `${18 + Math.random() * 14}px`);
+      spark.style.setProperty('--spark-hue', `${(Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hue').trim(), 10) || 205) + i * 6}`);
+      burst.appendChild(spark);
+    }
+
+    document.body.appendChild(burst);
+    window.setTimeout(() => burst.remove(), 560);
   }
 
   if (!cursorRuntime.clickRippleBound) {

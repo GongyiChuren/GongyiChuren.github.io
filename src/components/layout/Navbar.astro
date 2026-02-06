@@ -294,14 +294,15 @@ if (brand && window.matchMedia('(prefers-reduced-motion: no-preference)').matche
   }
 
   .navbar-brand:hover .navbar-logo {
-    animation: logo-jitter-x 0.1s linear infinite;
+    animation: logo-jitter-x 0.07s steps(2, end) infinite !important;
+    transition: none !important;
     transform-origin: 50% 58%;
   }
 
   @keyframes logo-jitter-x {
-    0% { transform: translateX(-1.5px) scale(1.1); }
-    50% { transform: translateX(1.5px) scale(1.1); }
-    100% { transform: translateX(-1.5px) scale(1.1); }
+    0% { transform: translateX(-2.6px) scale(1.1); }
+    50% { transform: translateX(2.6px) scale(1.1); }
+    100% { transform: translateX(-2.6px) scale(1.1); }
   }
 
   .easter-meteor-shower .meteor {

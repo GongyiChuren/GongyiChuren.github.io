@@ -211,6 +211,11 @@ const bannerOffset = `${BANNER_HEIGHT_EXTEND / 2}vh`;
       );
 
       // Load the hue from local storage
+      // Migrate old default hue (260) to the new site default while preserving custom user choices.
+      const storedHue = localStorage.getItem("hue");
+      if (storedHue === "260") {
+        localStorage.setItem("hue", String(configHue));
+      }
       const hue = localStorage.getItem("hue") || configHue;
       document.documentElement.style.setProperty("--hue", hue);
 
@@ -1024,15 +1029,19 @@ function disableAnimation() {
 
 <script>
 function applyRandomPostCardGlow(el) {
-  const baseHue = Math.floor(Math.random() * 360);
-  const hue2 = (baseHue + 40 + Math.random() * 40) % 360;
-  const hue3 = (baseHue + 120 + Math.random() * 40) % 360;
+  const cssHue = getComputedStyle(document.documentElement)
+    .getPropertyValue("--hue")
+    .trim();
+  const baseHue = Number.parseInt(cssHue, 10);
+  const safeHue = Number.isFinite(baseHue) ? baseHue : 205;
+  const hue2 = (safeHue + 18) % 360;
+  const hue3 = (safeHue + 34) % 360;
 
-  el.style.setProperty("--post-card-hover-c1", `hsla(${baseHue}, 65%, 78%, 0.18)`);
-  el.style.setProperty("--post-card-hover-c2", `hsla(${hue2}, 65%, 80%, 0.14)`);
-  el.style.setProperty("--post-card-hover-c3", `hsla(${hue3}, 65%, 78%, 0.18)`);
-  el.style.setProperty("--post-card-hover-shadow-1", `hsla(${baseHue}, 60%, 70%, 0.16)`);
-  el.style.setProperty("--post-card-hover-shadow-2", `hsla(${hue2}, 60%, 70%, 0.08)`);
+  el.style.setProperty("--post-card-hover-c1", `hsla(${safeHue}, 72%, 64%, 0.14)`);
+  el.style.setProperty("--post-card-hover-c2", `hsla(${hue2}, 70%, 62%, 0.1)`);
+  el.style.setProperty("--post-card-hover-c3", `hsla(${hue3}, 68%, 60%, 0.12)`);
+  el.style.setProperty("--post-card-hover-shadow-1", `hsla(${safeHue}, 62%, 55%, 0.12)`);
+  el.style.setProperty("--post-card-hover-shadow-2", `hsla(${hue2}, 58%, 52%, 0.06)`);
 }
 
 function bindPostCardHoverColors() {

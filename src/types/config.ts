@@ -333,6 +333,7 @@ export type WidgetComponentType =
 	| "sidebarToc"
 	| "advertisement"
 	| "stats"
+	| "calendar"
 	| "graphGame"
 	| "custom";
 

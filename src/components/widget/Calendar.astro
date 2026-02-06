@@ -639,6 +639,20 @@ for (let day = 1; day <= initDaysInMonth; day++) {
 </script>
 
 <style>
+  #calendar-widget .calendar-container {
+    border-radius: 14px;
+    padding: 0.2rem;
+    background:
+      radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--primary) 12%, transparent) 0%, transparent 60%),
+      linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 94%, white 6%) 0%, var(--card-bg) 100%);
+  }
+
+  :root.dark #calendar-widget .calendar-container {
+    background:
+      radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--primary) 18%, transparent) 0%, transparent 60%),
+      linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 94%, black 6%) 0%, var(--card-bg) 100%);
+  }
+
   .calendar-day {
     transition: all 0.2s ease;
     min-height: 32px;

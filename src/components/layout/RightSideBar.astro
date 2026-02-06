@@ -2,6 +2,7 @@
 import type { MarkdownHeading } from "astro";
 import Advertisement from "@/components/widget/Advertisement.astro";
 import Announcement from "@/components/widget/Announcement.astro";
+import Calendar from "@/components/widget/Calendar.astro";
 import GraphGame from "@/components/widget/GraphGame.astro";
 import Categories from "@/components/widget/Categories.astro";
 import Profile from "@/components/widget/Profile.astro";
@@ -28,6 +29,7 @@ const stickyComponents = widgetManager.getComponentsByPosition(
 // 组件类型到ID的映射
 const componentTypeToId = {
 	stats: "site-stats",
+	calendar: "calendar-widget",
 	graphGame: "graph-game",
 	sidebarToc: "sidebar-toc",
 	profile: "profile",
@@ -55,6 +57,7 @@ const componentMap = {
 	sidebarToc: SidebarTOC,
 	advertisement: Advertisement,
 	stats: SiteStats,
+	calendar: Calendar,
 	graphGame: GraphGame,
 };
 

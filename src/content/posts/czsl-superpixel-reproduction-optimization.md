@@ -38,9 +38,9 @@ image: /posts/images/czsl-superpixel-fig1.png
 
 我在这个项目中的思路是：先复现超像素增强（SVFE）作为结构先验，再优化成多尺度融合，改善“去噪 vs 细节保留”的矛盾。
 
-![任务背景与视觉纠缠问题（PPT原图）](/posts/images/czsl-ppt/image11.png)
+![任务背景与视觉纠缠问题](/posts/images/czsl-ppt/image11.png)
 
-*Figure 1. 任务背景与视觉纠缠问题定义（来自 PPT）。*
+*Figure 1. 视觉纠缠问题定义：纹理干扰会破坏属性-物体解耦。*
 
 ## 2. 复现部分：Superpixel-based Visual Feature Enhancement
 
@@ -141,7 +141,7 @@ PPT 里我反复强调两个参数：`n_segments` 和 `compactness`。这两个�
 | --- | --- |
 | ![超像素机制示意](/posts/images/czsl-ppt/image29.png) | ![超像素demo分割](/posts/images/czsl-ppt/image31.png) |
 
-*Figure 2. 超像素机制和 Demo 可视化：粒度变化会影响抗噪和轮廓保持。*
+*Figure 2. 超像素机制与 Demo：分割粒度直接影响抗噪和轮廓保持。*
 
 ### 2.2 区域聚合公式推导
 
@@ -221,9 +221,9 @@ $$
 
 因此在复杂场景下，V2 往往比 V1 更稳。
 
-![多尺度融合改进结果（PPT原图）](/posts/images/czsl-ppt/image44.png)
+![多尺度融合改进结果](/posts/images/czsl-ppt/image44.png)
 
-*Figure 3. V2 多尺度融合结果：粗尺度去噪 + 细尺度保边缘，SSIM 从 0.625 提升到 0.683。*
+*Figure 3. V2 多尺度融合：粗尺度去噪，细尺度保边缘，SSIM 提升。*
 
 ## 4. 实验设计与指标
 
@@ -246,7 +246,7 @@ $$
 | --- | --- |
 | ![ResNet误差反直觉](/posts/images/czsl-ppt/image37.png) | ![SSIM成功验证](/posts/images/czsl-ppt/image39.png) |
 
-*Figure 4. 评估路径切换：从分类分数到结构指标。*
+*Figure 4. 评估路径切换：分类分数不稳定，结构指标更贴合目标。*
 
 ### 4.1 噪声鲁棒性实验
 
@@ -278,9 +278,9 @@ $$
 - 比较 Baseline 与 Ours 的特征分布；
 - 用 t-SNE 观察类间可分性与类内紧致性。
 
-![t-SNE 可分性验证（PPT原图）](/posts/images/czsl-ppt/image45.png)
+![t-SNE 可分性验证](/posts/images/czsl-ppt/image45.png)
 
-*Figure 5. Cat/Deer/Dog 强噪声设置下，Ours 仍保持更好的簇分离。*
+*Figure 5. t-SNE 可分性验证：强噪声下 Ours 仍保持更清晰簇分离。*
 
 ### 4.3 实验环境与数据集
 
@@ -298,7 +298,7 @@ $$
 ## 5. 关键结论
 
 1. **复现有效**：超像素区域聚合确实能缓解噪声导致的结构破坏。
-2. **优化有效**：多尺度融合在 SSIM 和可视化上都优于单尺度基线（PPT 结果：`0.625 -> 0.683`）。
+2. **优化有效**：多尺度融合在 SSIM 和可视化上都优于单尺度基线（`0.625 -> 0.683`）。
 3. **机制合理**：粗细双路分别承担抗噪和保细节角色，符合统计与表示学习直觉。
 
 ## 6. 还能怎么继续做
@@ -327,5 +327,3 @@ $$
 [2] He, K., Zhang, X., Ren, S., & Sun, J. (2016). *Deep Residual Learning for Image Recognition*. CVPR.
 
 [3] Achanta, R., et al. (2012). *SLIC Superpixels Compared to State-of-the-Art Superpixel Methods*. IEEE TPAMI.
-
-注：正文中 SLIC 推导对应 [3]，ResNet 偏置讨论对应 [2]。

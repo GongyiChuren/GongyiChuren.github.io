@@ -4,10 +4,12 @@
 
 <div id="cursor-dot" class="cursor-dot"></div>
 <div id="cursor-outline" class="cursor-outline"></div>
+<div id="cursor-cone-orb" class="cursor-cone-orb"></div>
 
 <style is:global>
   .cursor-dot,
-  .cursor-outline {
+  .cursor-outline,
+  .cursor-cone-orb {
     pointer-events: none;
     position: fixed;
     top: 0;
@@ -51,6 +53,40 @@
     height: 28px;
     border: 2px solid hsl(var(--hue), 70%, 50%);
     transition: opacity 0.2s ease-in-out, transform 0.08s ease-in-out, border-color 0.2s ease-in-out;
+  }
+
+  .cursor-cone-orb {
+    width: clamp(220px, 24vw, 380px);
+    height: clamp(220px, 24vw, 380px);
+    z-index: 24;
+    opacity: 0;
+    filter: blur(0.5px) saturate(1.12);
+    mix-blend-mode: soft-light;
+    --orb-rot: 0deg;
+    --orb-scale: 1;
+    --orb-alpha: 0.42;
+    transform: translate(-50%, -50%) scale(var(--orb-scale)) rotate(var(--orb-rot));
+    transition: opacity 0.25s ease;
+    background:
+      radial-gradient(circle at center, hsla(var(--hue), 88%, 62%, 0.16) 0%, hsla(var(--hue), 88%, 62%, 0.06) 36%, transparent 62%),
+      conic-gradient(
+        from 10deg,
+        hsla(var(--hue), 92%, 66%, 0.00) 0deg,
+        hsla(var(--hue), 92%, 66%, var(--orb-alpha)) 26deg,
+        hsla(calc(var(--hue) + 28), 92%, 66%, 0.05) 46deg,
+        hsla(calc(var(--hue) + 52), 92%, 66%, var(--orb-alpha)) 72deg,
+        hsla(var(--hue), 92%, 66%, 0.00) 104deg,
+        hsla(calc(var(--hue) + 10), 92%, 66%, var(--orb-alpha)) 132deg,
+        hsla(var(--hue), 92%, 66%, 0.02) 156deg,
+        hsla(calc(var(--hue) + 40), 92%, 66%, var(--orb-alpha)) 196deg,
+        hsla(var(--hue), 92%, 66%, 0.00) 238deg,
+        hsla(calc(var(--hue) + 18), 92%, 66%, var(--orb-alpha)) 272deg,
+        hsla(calc(var(--hue) + 34), 92%, 66%, 0.06) 304deg,
+        hsla(var(--hue), 92%, 66%, var(--orb-alpha)) 334deg,
+        hsla(var(--hue), 92%, 66%, 0.00) 360deg
+      );
+    mask-image: radial-gradient(circle at center, black 0%, black 30%, rgba(0, 0, 0, 0.42) 56%, transparent 82%);
+    -webkit-mask-image: radial-gradient(circle at center, black 0%, black 30%, rgba(0, 0, 0, 0.42) 56%, transparent 82%);
   }
 
   .click-burst {
@@ -113,7 +149,8 @@
   /* 隐藏在移动设备上 */
   @media (max-width: 768px) {
     .cursor-dot,
-    .cursor-outline {
+    .cursor-outline,
+    .cursor-cone-orb {
       display: none;
     }
   }
@@ -128,14 +165,22 @@
 
   const cursorDot = document.getElementById('cursor-dot');
   const cursorOutline = document.getElementById('cursor-outline');
+  const cursorConeOrb = document.getElementById('cursor-cone-orb');
 
-  if (!cursorRuntime.initialized && cursorDot && cursorOutline) {
+  if (!cursorRuntime.initialized && cursorDot && cursorOutline && cursorConeOrb) {
     cursorRuntime.initialized = true;
 
     let mouseX = 0;
     let mouseY = 0;
     let outlineX = 0;
     let outlineY = 0;
+    let orbX = 0;
+    let orbY = 0;
+    let orbRot = 0;
+    let orbScale = 1;
+    let orbAlpha = 0.42;
+    let prevMouseX = 0;
+    let prevMouseY = 0;
     let lastMoveAt = 0;
     let isOverComment = false;
     let commentTarget: Element | null = null;
@@ -149,11 +194,13 @@
     const showCursor = () => {
       cursorDot.style.opacity = '1';
       cursorOutline.style.opacity = '1';
+      cursorConeOrb.style.opacity = '1';
     };
 
     const hideCursor = () => {
       cursorDot.style.opacity = '0';
       cursorOutline.style.opacity = '0';
+      cursorConeOrb.style.opacity = '0';
     };
 
     const onHoverIn = () => {
@@ -210,6 +257,12 @@
       mouseY = e.clientY;
       lastMoveAt = performance.now();
 
+      const speed = Math.min(11, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY));
+      prevMouseX = mouseX;
+      prevMouseY = mouseY;
+      orbScale = 1 + speed * 0.012;
+      orbAlpha = Math.min(0.56, 0.32 + speed * 0.02);
+
       if (commentTarget) {
         const now = performance.now();
         if (!cachedRect || now - rectTime > rectCacheMs) {
@@ -240,10 +293,18 @@
     function animateOutline() {
       outlineX += (mouseX - outlineX) * 0.45;
       outlineY += (mouseY - outlineY) * 0.45;
+      orbX += (mouseX - orbX) * 0.16;
+      orbY += (mouseY - orbY) * 0.16;
+      orbRot = (orbRot + 0.55) % 360;
 
       cursorOutline.style.opacity = '1';
       cursorOutline.style.left = `${outlineX}px`;
       cursorOutline.style.top = `${outlineY}px`;
+      cursorConeOrb.style.left = `${orbX}px`;
+      cursorConeOrb.style.top = `${orbY}px`;
+      cursorConeOrb.style.setProperty('--orb-rot', `${orbRot}deg`);
+      cursorConeOrb.style.setProperty('--orb-scale', `${orbScale.toFixed(2)}`);
+      cursorConeOrb.style.setProperty('--orb-alpha', orbAlpha.toFixed(2));
 
       if (isOverComment) {
         const now = performance.now();

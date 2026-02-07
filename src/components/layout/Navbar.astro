@@ -264,14 +264,11 @@ function startMeteorShower() {
     createMeteor();
     createMeteor();
     createMeteor();
-    createMeteor();
     meteorInterval = setInterval(() => {
         createMeteor();
         createMeteor();
-        createMeteor();
-        if (Math.random() > 0.2) createMeteor();
-        if (Math.random() > 0.5) createMeteor();
-    }, 70);
+        if (Math.random() > 0.45) createMeteor();
+    }, 95);
 }
 
 if (brand && window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {

@@ -4,6 +4,7 @@
 
 <div id="cursor-dot" class="cursor-dot"></div>
 <div id="cursor-aura" class="cursor-aura"></div>
+<div id="cursor-aura-soft" class="cursor-aura-soft"></div>
 <div id="cursor-outline" class="cursor-outline"></div>
 
 <style is:global>
@@ -30,12 +31,21 @@
   }
 
   .cursor-aura {
-    width: 44px;
-    height: 44px;
-    background: radial-gradient(circle, hsl(var(--hue), 82%, 62%, 0.26) 0%, hsl(var(--hue), 82%, 62%, 0.1) 42%, transparent 75%);
-    filter: blur(2px) saturate(1.08);
+    width: 52px;
+    height: 52px;
+    background: radial-gradient(circle, hsla(var(--hue), 82%, 62%, 0.34) 0%, hsla(var(--hue), 82%, 62%, 0.12) 42%, transparent 76%);
+    filter: blur(1.5px) saturate(1.1);
     z-index: 9998;
     transition: opacity 0.2s ease-in-out;
+  }
+
+  .cursor-aura-soft {
+    width: 84px;
+    height: 84px;
+    background: radial-gradient(circle, hsla(var(--hue), 86%, 64%, 0.2) 0%, hsla(var(--hue), 86%, 64%, 0.08) 45%, transparent 78%);
+    filter: blur(4px);
+    z-index: 9997;
+    transition: opacity 0.24s ease-in-out;
   }
 
   .cursor-trail {
@@ -125,6 +135,7 @@
   @media (max-width: 768px) {
     .cursor-dot,
     .cursor-aura,
+    .cursor-aura-soft,
     .cursor-outline {
       display: none;
     }
@@ -140,9 +151,10 @@
 
   const cursorDot = document.getElementById('cursor-dot');
   const cursorAura = document.getElementById('cursor-aura');
+  const cursorAuraSoft = document.getElementById('cursor-aura-soft');
   const cursorOutline = document.getElementById('cursor-outline');
 
-  if (!cursorRuntime.initialized && cursorDot && cursorAura && cursorOutline) {
+  if (!cursorRuntime.initialized && cursorDot && cursorAura && cursorAuraSoft && cursorOutline) {
     cursorRuntime.initialized = true;
 
     let mouseX = 0;
@@ -151,6 +163,8 @@
     let outlineY = 0;
     let auraX = 0;
     let auraY = 0;
+    let auraSoftX = 0;
+    let auraSoftY = 0;
     let prevMouseX = 0;
     let prevMouseY = 0;
     let lastMoveAt = 0;
@@ -166,12 +180,14 @@
     const showCursor = () => {
       cursorDot.style.opacity = '1';
       cursorAura.style.opacity = '1';
+      cursorAuraSoft.style.opacity = '1';
       cursorOutline.style.opacity = '1';
     };
 
     const hideCursor = () => {
       cursorDot.style.opacity = '0';
       cursorAura.style.opacity = '0';
+      cursorAuraSoft.style.opacity = '0';
       cursorOutline.style.opacity = '0';
     };
 
@@ -232,8 +248,10 @@
       const speed = Math.min(8, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY));
       prevMouseX = mouseX;
       prevMouseY = mouseY;
-      const auraScale = 1 + speed * 0.035;
+      const auraScale = 1 + speed * 0.022;
+      const auraSoftScale = 1 + speed * 0.016;
       cursorAura.style.transform = `translate(-50%, -50%) scale(${auraScale.toFixed(2)})`;
+      cursorAuraSoft.style.transform = `translate(-50%, -50%) scale(${auraSoftScale.toFixed(2)})`;
 
       if (commentTarget) {
         const now = performance.now();
@@ -267,12 +285,16 @@
       outlineY += (mouseY - outlineY) * 0.45;
       auraX += (mouseX - auraX) * 0.23;
       auraY += (mouseY - auraY) * 0.23;
+      auraSoftX += (mouseX - auraSoftX) * 0.14;
+      auraSoftY += (mouseY - auraSoftY) * 0.14;
 
       cursorOutline.style.opacity = '1';
       cursorOutline.style.left = `${outlineX}px`;
       cursorOutline.style.top = `${outlineY}px`;
       cursorAura.style.left = `${auraX}px`;
       cursorAura.style.top = `${auraY}px`;
+      cursorAuraSoft.style.left = `${auraSoftX}px`;
+      cursorAuraSoft.style.top = `${auraSoftY}px`;
 
       if (isOverComment) {
         const now = performance.now();

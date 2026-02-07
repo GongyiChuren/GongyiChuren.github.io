@@ -211,9 +211,9 @@ const bannerOffset = `${BANNER_HEIGHT_EXTEND / 2}vh`;
       );
 
       // Load the hue from local storage
-      // Migrate old default hue (260) to the new site default while preserving custom user choices.
+      // Migrate common old template defaults to the current site default while preserving custom user choices.
       const storedHue = localStorage.getItem("hue");
-      if (storedHue === "260") {
+      if (storedHue === "260" || storedHue === "140" || storedHue === "145") {
         localStorage.setItem("hue", String(configHue));
       }
       const hue = localStorage.getItem("hue") || configHue;

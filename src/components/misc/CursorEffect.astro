@@ -123,6 +123,7 @@
   const cursorRuntime = ((window as any).__fireflyCursorRuntime ||= {
     initialized: false,
     clickRippleBound: false,
+    clickHandler: null,
   });
 
   const cursorDot = document.getElementById('cursor-dot');
@@ -322,8 +323,10 @@
     window.setTimeout(() => burst.remove(), 560);
   }
 
-  if (!cursorRuntime.clickRippleBound) {
-    cursorRuntime.clickRippleBound = true;
-    document.addEventListener('click', createRipple);
+  if (cursorRuntime.clickHandler) {
+    document.removeEventListener('click', cursorRuntime.clickHandler);
   }
+  cursorRuntime.clickHandler = createRipple;
+  cursorRuntime.clickRippleBound = true;
+  document.addEventListener('click', cursorRuntime.clickHandler);
 </script>

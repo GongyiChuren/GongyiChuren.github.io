@@ -276,10 +276,12 @@ function startMeteorShower() {
 
 if (brand && window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
     brand.addEventListener('mouseenter', () => {
+        brand.classList.add('logo-jitter-active');
         clearMeteorTimers();
         startMeteorShower();
     });
     brand.addEventListener('mouseleave', () => {
+        brand.classList.remove('logo-jitter-active');
         clearMeteorTimers();
     });
 }
@@ -293,7 +295,8 @@ if (brand && window.matchMedia('(prefers-reduced-motion: no-preference)').matche
     transform: translateZ(0);
   }
 
-  .navbar-brand:hover .navbar-logo {
+  .navbar-brand:hover .navbar-logo,
+  .navbar-brand.logo-jitter-active .navbar-logo {
     animation: logo-jitter-x 0.07s steps(2, end) infinite !important;
     transition: none !important;
     transform-origin: 50% 58%;

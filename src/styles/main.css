@@ -696,3 +696,110 @@ widget-layout.card-base:hover {
   border: 2px solid transparent;
   background-clip: padding-box;
 }
+
+/* ====== 轻量美化：首屏排版 ====== */
+.banner-text-overlay > div {
+  max-width: min(900px, 90vw) !important;
+  padding: 1rem 1.3rem;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(7, 30, 52, 0.2) 0%, rgba(7, 30, 52, 0.08) 100%);
+  backdrop-filter: blur(2px);
+}
+
+.banner-title {
+  letter-spacing: 0.02em;
+  text-wrap: balance;
+  font-weight: 800 !important;
+  text-shadow: 0 10px 36px rgba(5, 18, 34, 0.5) !important;
+}
+
+.banner-subtitle {
+  margin-inline: auto;
+  max-width: 34ch;
+  line-height: 1.45 !important;
+  letter-spacing: 0.015em;
+  text-wrap: balance;
+  text-shadow: 0 4px 18px rgba(5, 18, 34, 0.45) !important;
+}
+
+/* ====== 轻量美化：侧栏卡片统一 ====== */
+widget-layout.card-base {
+  border: 1px solid color-mix(in srgb, var(--line-divider) 88%, var(--primary) 12%);
+  box-shadow: 0 8px 24px rgba(10, 20, 36, 0.05);
+  overflow: hidden;
+}
+
+:root.dark widget-layout.card-base {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+}
+
+widget-layout.card-base::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--primary) 55%, transparent) 50%, transparent 100%);
+  pointer-events: none;
+}
+
+widget-layout.card-base:hover {
+  transform: translateY(-2px);
+}
+
+/* ====== 轻量美化：文章阅读体验 ====== */
+#post-container .markdown-content {
+  max-width: 76ch;
+  margin-inline: auto;
+  font-size: 1.04rem;
+  line-height: 1.9;
+}
+
+#post-container .markdown-content p {
+  margin-bottom: 1.02em;
+}
+
+#post-container .markdown-content h2,
+#post-container .markdown-content h3,
+#post-container .markdown-content h4 {
+  letter-spacing: 0.01em;
+  margin-top: 1.5em;
+}
+
+#post-container .markdown-content blockquote {
+  border-left: 3px solid color-mix(in srgb, var(--primary) 60%, transparent);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+  border-radius: 0.65rem;
+  padding: 0.85rem 1rem;
+}
+
+#post-container .markdown-content img {
+  border-radius: 14px;
+  box-shadow: 0 12px 24px rgba(15, 30, 46, 0.14);
+}
+
+/* ====== 动效分层：弱化持续背景动效 ====== */
+#firefly-container {
+  opacity: 0.65;
+}
+
+#firefly-container canvas {
+  filter: saturate(0.8);
+}
+
+.waves use {
+  opacity: 0.85;
+}
+
+@media (max-width: 768px) {
+  #post-container .markdown-content {
+    font-size: 1rem;
+    line-height: 1.82;
+  }
+
+  .banner-text-overlay > div {
+    padding: 0.8rem 1rem;
+    border-radius: 16px;
+  }
+}

@@ -832,3 +832,98 @@ widget-layout.card-base:hover {
     height: 42%;
   }
 }
+
+/* ====== 文章卡片信息层级优化 ====== */
+.post-card-wrapper .post-meta {
+  gap: 0.6rem 0.9rem;
+}
+
+.post-card-wrapper .post-meta > div {
+  border-radius: 10px;
+  padding: 0.2rem 0.3rem;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.post-card-wrapper .post-meta .meta-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 8px;
+  margin-right: 0.4rem;
+  background: color-mix(in srgb, var(--btn-regular-bg) 85%, var(--primary) 15%);
+  color: color-mix(in srgb, var(--btn-content) 88%, var(--primary) 12%);
+}
+
+.post-card-wrapper .post-meta .text-50,
+.post-card-wrapper .post-meta a.text-50 {
+  color: color-mix(in srgb, var(--content-meta) 82%, var(--deep-text) 18%);
+  font-weight: 520;
+}
+
+.post-card-wrapper .post-meta a.text-50:hover {
+  color: var(--primary);
+}
+
+.post-card-wrapper .stats .btn-regular {
+  border: 1px solid color-mix(in srgb, var(--line-divider) 82%, var(--primary) 18%);
+  background: color-mix(in srgb, var(--btn-regular-bg) 88%, var(--primary) 12%);
+  color: color-mix(in srgb, var(--btn-content) 85%, var(--deep-text) 15%);
+  letter-spacing: 0.01em;
+}
+
+.post-card-wrapper .stats .btn-regular:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(10, 30, 54, 0.14);
+}
+
+.post-card-wrapper:hover .post-meta > div {
+  background: color-mix(in srgb, var(--btn-plain-bg-hover) 82%, transparent);
+}
+
+/* ====== 空状态与细节动效 ====== */
+.empty-state-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px dashed color-mix(in srgb, var(--line-divider) 70%, var(--primary) 30%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 94%, var(--primary) 6%) 0%, var(--card-bg) 100%);
+  animation: empty-state-in 0.32s ease-out;
+}
+
+.empty-state-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 25%, color-mix(in srgb, var(--primary) 12%, transparent) 50%, transparent 75%);
+  transform: translateX(-120%);
+  animation: empty-state-sheen 3.2s ease-in-out infinite;
+}
+
+.empty-state-icon {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 40%, transparent);
+}
+
+@keyframes empty-state-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes empty-state-sheen {
+  0% { transform: translateX(-120%); opacity: 0; }
+  20% { opacity: 0.8; }
+  55% { transform: translateX(120%); opacity: 0; }
+  100% { transform: translateX(120%); opacity: 0; }
+}

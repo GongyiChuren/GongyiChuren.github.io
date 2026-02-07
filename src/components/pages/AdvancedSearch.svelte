@@ -169,12 +169,20 @@ const handleInput = () => {
                 {/each}
             </div>
         {:else if keyword}
-            <div class="card-base p-10 text-center text-50 rounded-[var(--radius-large)]">
-                {i18n(I18nKey.searchNoResults)}
+            <div class="card-base empty-state-card p-10 text-center text-50 rounded-[var(--radius-large)]">
+                <div class="empty-state-icon mx-auto mb-3">
+                    <Icon icon="material-symbols:search-off-rounded" class="text-2xl" />
+                </div>
+                <div class="text-base text-75 font-semibold mb-1">{i18n(I18nKey.searchNoResults)}</div>
+                <div class="text-sm text-50">试试更短关键词，或减少筛选条件</div>
             </div>
         {:else}
-             <div class="card-base p-10 text-center text-50 rounded-[var(--radius-large)]">
-                {i18n(I18nKey.searchTypeSomething)}
+             <div class="card-base empty-state-card p-10 text-center text-50 rounded-[var(--radius-large)]">
+                <div class="empty-state-icon mx-auto mb-3">
+                    <Icon icon="material-symbols:ink-highlighter-outline-rounded" class="text-2xl" />
+                </div>
+                <div class="text-base text-75 font-semibold mb-1">{i18n(I18nKey.searchTypeSomething)}</div>
+                <div class="text-sm text-50">输入关键词，快速定位文章内容</div>
             </div>
         {/if}
     </div>

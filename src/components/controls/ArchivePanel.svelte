@@ -118,6 +118,13 @@ onMount(async () => {
 </script>
 
 <div class="card-base px-8 py-6">
+    {#if groups.length === 0}
+        <div class="empty-state-card rounded-[var(--radius-large)] p-10 text-center text-50">
+            <div class="empty-state-icon mx-auto mb-3">?</div>
+            <div class="text-base text-75 font-semibold mb-1">{i18n(I18nKey.searchNoResults)}</div>
+            <div class="text-sm text-50">当前筛选条件下没有文章，换个标签或分类试试</div>
+        </div>
+    {:else}
     {#each groups as group}
         <div>
             <div class="flex flex-row w-full items-center h-[3.75rem]">
@@ -139,7 +146,7 @@ onMount(async () => {
                 <a
                         href={getPostUrlBySlug(post.id)}
                         aria-label={post.data.title}
-                        class="group btn-plain !block h-10 w-full rounded-lg hover:text-[initial]"
+                        class="group archive-row btn-plain !block h-10 w-full rounded-lg hover:text-[initial]"
                 >
                     <div class="flex flex-row justify-start items-center h-full">
                         <!-- date -->
@@ -180,6 +187,7 @@ onMount(async () => {
             {/each}
         </div>
     {/each}
+    {/if}
 </div>
 
 {#if showArchiveEaster}
@@ -187,6 +195,14 @@ onMount(async () => {
 {/if}
 
 <style>
+	.archive-row {
+		transition: transform 0.22s ease, background-color 0.22s ease;
+	}
+
+	.archive-row:hover {
+		transform: translateX(2px);
+	}
+
 	.archive-easter-toast {
 		position: fixed;
 		left: 50%;

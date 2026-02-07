@@ -700,10 +700,24 @@ widget-layout.card-base:hover {
 /* ====== 轻量美化：首屏排版 ====== */
 .banner-text-overlay > div {
   max-width: min(900px, 90vw) !important;
-  padding: 1rem 1.3rem;
-  border-radius: 20px;
-  background: linear-gradient(180deg, rgba(7, 30, 52, 0.2) 0%, rgba(7, 30, 52, 0.08) 100%);
-  backdrop-filter: blur(2px);
+  position: relative;
+  padding: 0.55rem 0.8rem;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.banner-text-overlay > div::before {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: -4px;
+  height: 48%;
+  background: radial-gradient(ellipse at center, rgba(10, 40, 68, 0.38) 0%, rgba(10, 40, 68, 0.12) 52%, transparent 100%);
+  filter: blur(14px);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .banner-title {
@@ -799,7 +813,13 @@ widget-layout.card-base:hover {
   }
 
   .banner-text-overlay > div {
-    padding: 0.8rem 1rem;
-    border-radius: 16px;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .banner-text-overlay > div::before {
+    left: 6%;
+    right: 6%;
+    bottom: -2px;
+    height: 42%;
   }
 }

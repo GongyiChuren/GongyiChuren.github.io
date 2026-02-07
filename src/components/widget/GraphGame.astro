@@ -13,7 +13,7 @@ const gameHeight = 140;
 const worldWidth = 520;
 ---
 
-<WidgetLayout id="graph-game" name="Game console" class={className} style={style}>
+<WidgetLayout id="graph-game" name="Game console" class={`graph-game-widget ${className || ""}`} style={style}>
   <div class="relative">
     <canvas id="mini-platformer" width={gameWidth} height={gameHeight} class="w-full h-[160px] rounded-lg border border-black/10 dark:border-white/15 bg-white/60 dark:bg-black/30"></canvas>
     <div class="mt-2 flex gap-2">
@@ -529,6 +529,15 @@ const worldWidth = 520;
 </script>
 
 <style is:inline>
+  :global(widget-layout.graph-game-widget) {
+    overflow: visible !important;
+  }
+
+  :global(widget-layout.graph-game-widget .collapse-wrapper) {
+    overflow: visible !important;
+    padding-bottom: 0.35rem;
+  }
+
   #graph-game {
     position: relative;
   }

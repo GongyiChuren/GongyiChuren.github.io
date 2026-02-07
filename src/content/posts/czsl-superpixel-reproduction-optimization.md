@@ -137,11 +137,9 @@ PPT 里我反复强调两个参数：`n_segments` 和 `compactness`。这两个�
 
 这正是后面做多尺度融合的动机：单一尺度很难同时满足“结构稳定”和“细节保真”。
 
-| 超像素机制示意 | Demo 分割结果 |
-| --- | --- |
-| ![超像素机制示意](/posts/images/czsl-ppt/image29.png) | ![超像素demo分割](/posts/images/czsl-ppt/image31.png) |
+![超像素 demo 分割结果](/posts/images/czsl-ppt/image31.png)
 
-*Figure 2. 超像素机制与 Demo：分割粒度直接影响抗噪和轮廓保持。*
+*Figure 2. 超像素 Demo：分割粒度会直接影响抗噪和轮廓保持。*
 
 ### 2.2 区域聚合公式推导
 
@@ -289,11 +287,9 @@ $$
 
 工程配置方面，本地实验环境使用 RTX Laptop GPU（8GB 显存）进行复现与验证；训练流程由 `flags.py`、`train.py`、`test.py` 管理。
 
-| 数据集说明 | 工程结构与环境 |
-| --- | --- |
-| ![数据集说明](/posts/images/czsl-ppt/image16.png) | ![工程结构与环境](/posts/images/czsl-ppt/image28.png) |
+![数据集说明](/posts/images/czsl-ppt/image16.png)
 
-*Figure 6. 数据挑战与工程复现管线。*
+*Figure 6. 数据集与任务挑战概览。*
 
 ## 5. 关键结论
 

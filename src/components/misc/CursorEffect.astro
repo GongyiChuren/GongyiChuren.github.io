@@ -35,6 +35,7 @@
     height: 52px;
     background: radial-gradient(circle, hsla(var(--hue), 82%, 62%, 0.34) 0%, hsla(var(--hue), 82%, 62%, 0.12) 42%, transparent 76%);
     filter: blur(1.5px) saturate(1.1);
+    mix-blend-mode: multiply;
     z-index: 9998;
     transition: opacity 0.2s ease-in-out;
   }
@@ -44,6 +45,7 @@
     height: 84px;
     background: radial-gradient(circle, hsla(var(--hue), 86%, 64%, 0.2) 0%, hsla(var(--hue), 86%, 64%, 0.08) 45%, transparent 78%);
     filter: blur(4px);
+    mix-blend-mode: multiply;
     z-index: 9997;
     transition: opacity 0.24s ease-in-out;
   }
@@ -248,10 +250,12 @@
       const speed = Math.min(8, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY));
       prevMouseX = mouseX;
       prevMouseY = mouseY;
-      const auraScale = 1 + speed * 0.022;
-      const auraSoftScale = 1 + speed * 0.016;
+      const auraScale = 1 + speed * 0.02;
+      const auraSoftScale = 1 + speed * 0.013;
       cursorAura.style.transform = `translate(-50%, -50%) scale(${auraScale.toFixed(2)})`;
       cursorAuraSoft.style.transform = `translate(-50%, -50%) scale(${auraSoftScale.toFixed(2)})`;
+      cursorAura.style.opacity = `${Math.min(0.7, 0.42 + speed * 0.025)}`;
+      cursorAuraSoft.style.opacity = `${Math.min(0.52, 0.26 + speed * 0.02)}`;
 
       if (commentTarget) {
         const now = performance.now();

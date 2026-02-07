@@ -3,13 +3,10 @@
 ---
 
 <div id="cursor-dot" class="cursor-dot"></div>
-<div id="cursor-aura" class="cursor-aura"></div>
-<div id="cursor-aura-soft" class="cursor-aura-soft"></div>
 <div id="cursor-outline" class="cursor-outline"></div>
 
 <style is:global>
   .cursor-dot,
-  .cursor-aura,
   .cursor-outline {
     pointer-events: none;
     position: fixed;
@@ -28,26 +25,6 @@
     height: 6px;
     background: hsl(var(--hue), 70%, 50%);
     box-shadow: 0 0 6px hsl(var(--hue), 70%, 50%);
-  }
-
-  .cursor-aura {
-    width: 52px;
-    height: 52px;
-    background: radial-gradient(circle, hsla(var(--hue), 82%, 62%, 0.34) 0%, hsla(var(--hue), 82%, 62%, 0.12) 42%, transparent 76%);
-    filter: blur(1.5px) saturate(1.1);
-    mix-blend-mode: multiply;
-    z-index: 9998;
-    transition: opacity 0.2s ease-in-out;
-  }
-
-  .cursor-aura-soft {
-    width: 84px;
-    height: 84px;
-    background: radial-gradient(circle, hsla(var(--hue), 86%, 64%, 0.2) 0%, hsla(var(--hue), 86%, 64%, 0.08) 45%, transparent 78%);
-    filter: blur(4px);
-    mix-blend-mode: multiply;
-    z-index: 9997;
-    transition: opacity 0.24s ease-in-out;
   }
 
   .cursor-trail {
@@ -136,8 +113,6 @@
   /* 隐藏在移动设备上 */
   @media (max-width: 768px) {
     .cursor-dot,
-    .cursor-aura,
-    .cursor-aura-soft,
     .cursor-outline {
       display: none;
     }
@@ -152,23 +127,15 @@
   });
 
   const cursorDot = document.getElementById('cursor-dot');
-  const cursorAura = document.getElementById('cursor-aura');
-  const cursorAuraSoft = document.getElementById('cursor-aura-soft');
   const cursorOutline = document.getElementById('cursor-outline');
 
-  if (!cursorRuntime.initialized && cursorDot && cursorAura && cursorAuraSoft && cursorOutline) {
+  if (!cursorRuntime.initialized && cursorDot && cursorOutline) {
     cursorRuntime.initialized = true;
 
     let mouseX = 0;
     let mouseY = 0;
     let outlineX = 0;
     let outlineY = 0;
-    let auraX = 0;
-    let auraY = 0;
-    let auraSoftX = 0;
-    let auraSoftY = 0;
-    let prevMouseX = 0;
-    let prevMouseY = 0;
     let lastMoveAt = 0;
     let isOverComment = false;
     let commentTarget: Element | null = null;
@@ -181,15 +148,11 @@
 
     const showCursor = () => {
       cursorDot.style.opacity = '1';
-      cursorAura.style.opacity = '1';
-      cursorAuraSoft.style.opacity = '1';
       cursorOutline.style.opacity = '1';
     };
 
     const hideCursor = () => {
       cursorDot.style.opacity = '0';
-      cursorAura.style.opacity = '0';
-      cursorAuraSoft.style.opacity = '0';
       cursorOutline.style.opacity = '0';
     };
 
@@ -247,16 +210,6 @@
       mouseY = e.clientY;
       lastMoveAt = performance.now();
 
-      const speed = Math.min(8, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY));
-      prevMouseX = mouseX;
-      prevMouseY = mouseY;
-      const auraScale = 1 + speed * 0.02;
-      const auraSoftScale = 1 + speed * 0.013;
-      cursorAura.style.transform = `translate(-50%, -50%) scale(${auraScale.toFixed(2)})`;
-      cursorAuraSoft.style.transform = `translate(-50%, -50%) scale(${auraSoftScale.toFixed(2)})`;
-      cursorAura.style.opacity = `${Math.min(0.7, 0.42 + speed * 0.025)}`;
-      cursorAuraSoft.style.opacity = `${Math.min(0.52, 0.26 + speed * 0.02)}`;
-
       if (commentTarget) {
         const now = performance.now();
         if (!cachedRect || now - rectTime > rectCacheMs) {
@@ -287,18 +240,10 @@
     function animateOutline() {
       outlineX += (mouseX - outlineX) * 0.45;
       outlineY += (mouseY - outlineY) * 0.45;
-      auraX += (mouseX - auraX) * 0.23;
-      auraY += (mouseY - auraY) * 0.23;
-      auraSoftX += (mouseX - auraSoftX) * 0.14;
-      auraSoftY += (mouseY - auraSoftY) * 0.14;
 
       cursorOutline.style.opacity = '1';
       cursorOutline.style.left = `${outlineX}px`;
       cursorOutline.style.top = `${outlineY}px`;
-      cursorAura.style.left = `${auraX}px`;
-      cursorAura.style.top = `${auraY}px`;
-      cursorAuraSoft.style.left = `${auraSoftX}px`;
-      cursorAuraSoft.style.top = `${auraSoftY}px`;
 
       if (isOverComment) {
         const now = performance.now();

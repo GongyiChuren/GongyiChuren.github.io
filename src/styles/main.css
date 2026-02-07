@@ -722,17 +722,18 @@ widget-layout.card-base:hover {
 
 .banner-title {
   letter-spacing: 0.02em;
-  text-wrap: balance;
+  text-wrap: pretty;
+  white-space: nowrap;
   font-weight: 800 !important;
   text-shadow: 0 10px 36px rgba(5, 18, 34, 0.5) !important;
 }
 
 .banner-subtitle {
   margin-inline: auto;
-  max-width: 34ch;
+  max-width: min(60ch, 92vw);
   line-height: 1.45 !important;
   letter-spacing: 0.015em;
-  text-wrap: balance;
+  text-wrap: pretty;
   text-shadow: 0 4px 18px rgba(5, 18, 34, 0.45) !important;
 }
 
@@ -807,6 +808,14 @@ widget-layout.card-base:hover {
 }
 
 @media (max-width: 768px) {
+  .banner-title {
+    white-space: normal;
+  }
+
+  .banner-subtitle {
+    max-width: min(42ch, 94vw);
+  }
+
   #post-container .markdown-content {
     font-size: 1rem;
     line-height: 1.82;

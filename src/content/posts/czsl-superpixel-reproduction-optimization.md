@@ -38,6 +38,10 @@ image: /posts/images/czsl-superpixel-fig1.png
 
 我在这个项目中的思路是：先复现超像素增强（SVFE）作为结构先验，再优化成多尺度融合，改善“去噪 vs 细节保留”的矛盾。
 
+![任务背景与视觉纠缠问题（PPT原图）](/posts/images/czsl-ppt/image11.png)
+
+*Figure 1. 任务背景与视觉纠缠问题定义（来自 PPT）。*
+
 ## 2. 复现部分：Superpixel-based Visual Feature Enhancement
 
 复现核心代码在：`czsl-Superpixel-code/czsl-Superpixel-based/superpixel_module.py`
@@ -133,6 +137,12 @@ PPT 里我反复强调两个参数：`n_segments` 和 `compactness`。这两个�
 
 这正是后面做多尺度融合的动机：单一尺度很难同时满足“结构稳定”和“细节保真”。
 
+| 超像素机制示意 | Demo 分割结果 |
+| --- | --- |
+| ![超像素机制示意](/posts/images/czsl-ppt/image29.png) | ![超像素demo分割](/posts/images/czsl-ppt/image31.png) |
+
+*Figure 2. 超像素机制和 Demo 可视化：粒度变化会影响抗噪和轮廓保持。*
+
 ### 2.2 区域聚合公式推导
 
 区域级表示定义为区域内均值池化：
@@ -211,6 +221,10 @@ $$
 
 因此在复杂场景下，V2 往往比 V1 更稳。
 
+![多尺度融合改进结果（PPT原图）](/posts/images/czsl-ppt/image44.png)
+
+*Figure 3. V2 多尺度融合结果：粗尺度去噪 + 细尺度保边缘，SSIM 从 0.625 提升到 0.683。*
+
 ## 4. 实验设计与指标
 
 ### 4.0 先踩的坑：ResNet 分类分数并不能直接证明改进
@@ -227,6 +241,12 @@ $$
 - 所以“结构更好”不等于“ResNet 分类分更高”。
 
 因此我在 PPT 里把评估切换到结构指标 SSIM，并辅以边缘响应和 t-SNE 可视化，这样更符合 CZSL 关注的“结构可组合性”。
+
+| 探索 I：ResNet 误差反直觉 | 探索 II：SSIM 成功验证 |
+| --- | --- |
+| ![ResNet误差反直觉](/posts/images/czsl-ppt/image37.png) | ![SSIM成功验证](/posts/images/czsl-ppt/image39.png) |
+
+*Figure 4. 评估路径切换：从分类分数到结构指标。*
 
 ### 4.1 噪声鲁棒性实验
 
@@ -258,6 +278,10 @@ $$
 - 比较 Baseline 与 Ours 的特征分布；
 - 用 t-SNE 观察类间可分性与类内紧致性。
 
+![t-SNE 可分性验证（PPT原图）](/posts/images/czsl-ppt/image45.png)
+
+*Figure 5. Cat/Deer/Dog 强噪声设置下，Ours 仍保持更好的簇分离。*
+
 ### 4.3 实验环境与数据集
 
 - 数据集 1：MIT-States，约 `53,753` 张图像，`115` 个属性，背景复杂，适合验证前景/背景分离能力；
@@ -265,59 +289,19 @@ $$
 
 工程配置方面，本地实验环境使用 RTX Laptop GPU（8GB 显存）进行复现与验证；训练流程由 `flags.py`、`train.py`、`test.py` 管理。
 
-## 5. 结果图（直接使用 PPT 原图，图文对应）
-
-下面图片直接从 `ppt_report.pptx` 导出，按叙事顺序排版，不再用简化版占位图。
-
-### Figure 1. 任务背景与问题定义（对应 PPT 前半部分）
-
-![Figure 1 - task and motivation](/posts/images/czsl-ppt/image11.png)
-
-这部分图对应“视觉纠缠”问题定义：传统 CNN 在强背景和噪声下容易把纹理当作语义，导致属性-物体解耦困难。
-
-### Figure 2. 基准数据与工程复现环境（对应数据集/代码结构页）
-
-| MIT-States / Zappos | 工程结构与环境 |
+| 数据集说明 | 工程结构与环境 |
 | --- | --- |
-| ![Figure 2a - datasets](/posts/images/czsl-ppt/image16.png) | ![Figure 2b - engineering setup](/posts/images/czsl-ppt/image28.png) |
+| ![数据集说明](/posts/images/czsl-ppt/image16.png) | ![工程结构与环境](/posts/images/czsl-ppt/image28.png) |
 
-左图强调数据挑战（复杂背景 + 细粒度差异），右图对应复现工程管线（`flags.py`、`train.py`、`superpixel_module.py`、验证脚本）。
+*Figure 6. 数据挑战与工程复现管线。*
 
-### Figure 3. 超像素机制与可视化结果（对应原理与 Demo）
-
-| 原理示意 | Demo 分割结果 |
-| --- | --- |
-| ![Figure 3a - superpixel mechanism](/posts/images/czsl-ppt/image29.png) | ![Figure 3b - demo visualization](/posts/images/czsl-ppt/image31.png) |
-
-图中可以看到：随着分割粒度变化，模型对前景轮廓与背景干扰的分离能力会发生显著变化。
-
-### Figure 4. 评估路径调整：从 ResNet 分数到结构指标（对应探索 I/II）
-
-| 探索 I：ResNet 误差反直觉 | 探索 II：SSIM 成功验证 |
-| --- | --- |
-| ![Figure 4a - failed resnet metric](/posts/images/czsl-ppt/image37.png) | ![Figure 4b - successful ssim metric](/posts/images/czsl-ppt/image39.png) |
-
-这一步是项目里最关键的认知转折：分类分数不能直接代表“结构恢复”，因此评估指标切换到 SSIM + 边缘响应更合理。
-
-### Figure 5. 多尺度融合改进结果（对应 V2 页）
-
-![Figure 5 - multi-scale fusion improvement](/posts/images/czsl-ppt/image44.png)
-
-这里对应 V2 的核心结果：粗尺度负责去噪，细尺度保留边缘，融合后 SSIM 由 `0.625` 提升到 `0.683`（PPT结果）。
-
-### Figure 6. 最终判别性验证（t-SNE）
-
-![Figure 6 - tSNE separability](/posts/images/czsl-ppt/image45.png)
-
-在 Cat/Deer/Dog 强噪声设置下，Ours 仍保持更清晰的簇分离，说明改进后的表示在特征空间中更可分。
-
-## 6. 关键结论
+## 5. 关键结论
 
 1. **复现有效**：超像素区域聚合确实能缓解噪声导致的结构破坏。
 2. **优化有效**：多尺度融合在 SSIM 和可视化上都优于单尺度基线（PPT 结果：`0.625 -> 0.683`）。
 3. **机制合理**：粗细双路分别承担抗噪和保细节角色，符合统计与表示学习直觉。
 
-## 7. 还能怎么继续做
+## 6. 还能怎么继续做
 
 下一步我准备沿这几条线继续推进：
 
@@ -325,7 +309,7 @@ $$
 - 将多尺度模块更深地接入完整 CZSL 训练管线，做标准 benchmark 对比；
 - 增加更多噪声类型和跨数据域验证，评估泛化稳定性。
 
-## 8. 相关文件索引
+## 7. 相关文件索引
 
 - 详细文字说明：`report.docx`
 - 汇报版图文：`ppt_report.pptx`
@@ -336,7 +320,7 @@ $$
 
 如果你也在做“复现 + 改进”类课程项目，欢迎直接参考这个结构：先做可运行复现，再做单点优化，再用定量指标和可视化双重验证，最后写成可复查的技术闭环。
 
-## 9. 参考文献
+## 8. 参考文献
 
 [1] Du, W., Bao, X., Xu, X., et al. (2026). *Superpixel-based Visual Feature Enhancement for Compositional Zero-Shot Learning*. Information Processing and Management.
 

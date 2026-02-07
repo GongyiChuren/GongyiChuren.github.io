@@ -15,11 +15,11 @@ draft: false
 image: /posts/images/czsl-superpixel-fig1.png
 ---
 
-这篇文章是我期末项目的完整技术整理版，内容与仓库里的 `report.docx`、`ppt_report.pptx` 对齐，但会把关键方法和推导展开写清楚，方便后续复现和继续优化。
-
-如果你已经看过我的 README，可以把这篇当作“完整版技术细节”。
-
+<small>
+这篇文章是我期末项目的完整技术整理版，内容与仓库里的 `report.docx`、`ppt_report.pptx` 对齐，但会把关键方法和推导展开写清楚，方便后续复现和继续优化。<br/>
+如果你已经看过我的 README，可以把这篇当作“完整版技术细节”。<br/>
 另外先说明：这篇会把 PPT 里提到的参数含义都讲清楚，不只给参数值。
+</small>
 
 ## 1. 问题背景：为什么 CZSL 在视觉上容易“纠缠”
 

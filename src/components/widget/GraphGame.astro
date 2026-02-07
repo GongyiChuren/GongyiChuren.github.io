@@ -14,9 +14,9 @@ const worldWidth = 520;
 ---
 
 <WidgetLayout id="graph-game" name="Game console" class={`graph-game-widget ${className || ""}`} style={style}>
-  <div class="relative">
+  <div class="relative pb-2">
     <canvas id="mini-platformer" width={gameWidth} height={gameHeight} class="w-full h-[160px] rounded-lg border border-black/10 dark:border-white/15 bg-white/60 dark:bg-black/30"></canvas>
-    <div class="mt-2 flex gap-2">
+    <div class="mt-2 flex items-center gap-2 pb-1 relative z-[2]">
       <button id="mini-start" class="h-4 w-4 rounded-full bg-[#34C759] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_2px_rgba(0,0,0,0.12)] ring-1 ring-black/10 hover:brightness-110 transition" title="开始"></button>
       <button id="mini-pause" class="h-4 w-4 rounded-full bg-[#FFCC00] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_2px_rgba(0,0,0,0.12)] ring-1 ring-black/10 hover:brightness-110 transition" title="暂停"></button>
       <button id="mini-reset" class="h-4 w-4 rounded-full bg-[#FF3B30] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_2px_rgba(0,0,0,0.12)] ring-1 ring-black/10 hover:brightness-110 transition" title="重开"></button>

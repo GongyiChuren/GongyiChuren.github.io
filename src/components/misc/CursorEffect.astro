@@ -213,7 +213,7 @@
 
           updateUiRects();
 
-          const targetCount = Math.max(56, Math.min(198, Math.floor((width * height) / 14500)));
+          const targetCount = Math.max(280, Math.min(990, Math.floor((width * height) / 2900)));
           if (nodes.length < targetCount) {
             for (let i = nodes.length; i < targetCount; i++) {
               const p = samplePointPreferOutside();
@@ -403,10 +403,11 @@
 
               const nearFactor = d < 18 ? d / 18 : 1;
               const alpha = Math.pow(1 - d / maxDist, 1.25) * 0.62 * nearFactor;
-              if (edgeFlash > 0.002) {
+              const edgeSubset = ((i * 73856093) ^ (j * 19349663)) & 1;
+              if (edgeFlash > 0.002 && edgeSubset === 0) {
                 const flashAlpha = alpha * edgeFlash;
                 ctx.strokeStyle = `hsla(${hue}, 88%, 70%, ${flashAlpha.toFixed(3)})`;
-                ctx.lineWidth = 0.6;
+                ctx.lineWidth = 0.45;
                 ctx.beginPath();
                 ctx.moveTo(a.x, a.y);
                 ctx.lineTo(b.x, b.y);

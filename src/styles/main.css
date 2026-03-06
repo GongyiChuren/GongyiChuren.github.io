@@ -834,6 +834,47 @@ widget-layout.card-base:hover {
 }
 
 /* ====== 文章卡片信息层级优化 ====== */
+.post-card-wrapper {
+  border: 1px solid color-mix(in srgb, var(--line-divider) 82%, var(--primary) 18%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 96%, var(--primary) 4%) 0%, var(--card-bg) 100%);
+  box-shadow: 0 10px 24px rgba(8, 18, 34, 0.05);
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+}
+
+.post-card-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--primary) 50%, transparent) 50%, transparent 100%);
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.post-card-wrapper:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--line-divider) 68%, var(--primary) 32%);
+  box-shadow: 0 14px 34px rgba(8, 24, 44, 0.12);
+}
+
+.post-card-wrapper .post-card-title {
+  line-height: 1.24;
+  letter-spacing: 0.01em;
+}
+
+.post-card-wrapper .post-card-image img {
+  transition: transform 0.45s cubic-bezier(0.2, 0.72, 0.25, 1);
+}
+
+.post-card-wrapper:hover .post-card-image img {
+  transform: scale(1.035);
+}
+
+:root.dark .post-card-wrapper {
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+}
+
 .post-card-wrapper .post-meta {
   gap: 0.6rem 0.9rem;
 }

@@ -54,6 +54,7 @@ const { remarkPluginFrontmatter } = await render(entry);
 <div
   class:list={[
     "post-card-wrapper",
+    "group/post",
     hasCover ? "has-cover" : "no-cover",
     pinned ? "pinned" : "",
     "card-base flex flex-col-reverse md:flex-col w-full rounded-[var(--radius-large)] overflow-hidden relative",
@@ -159,22 +160,22 @@ const { remarkPluginFrontmatter } = await render(entry);
   {
     hasCover && (
       <a
-        href={url}
-        aria-label={title}
-        class:list={[
-          "post-card-image",
-          "group",
+      href={url}
+      aria-label={title}
+      class:list={[
+        "post-card-image",
+        "group/image",
           "w-full md:w-[var(--coverWidth)]",
           "aspect-[2/1] md:aspect-auto",
           "relative md:absolute md:top-4 md:bottom-4 md:right-4",
           "rounded-t-[var(--radius-large)] md:rounded-xl overflow-hidden active:scale-95",
         ]}
       >
-        <div class="absolute pointer-events-none z-10 w-full h-full group-hover:bg-black/30 group-active:bg-black/50 transition" />
+        <div class="absolute pointer-events-none z-10 w-full h-full group-hover/image:bg-black/18 group-active:bg-black/30 transition" />
         <div class="absolute pointer-events-none z-20 w-full h-full flex items-center justify-center ">
           <Icon
             name="material-symbols:chevron-right-rounded"
-            class="transition opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 text-white text-5xl"
+            class="transition opacity-0 group-hover/image:opacity-100 scale-50 group-hover/image:scale-100 text-white text-5xl"
           />
         </div>
         <RandomCoverImage

@@ -1,418 +1,232 @@
 ---
-// 鼠标光标特效组件 + 点击涟漪特效
+// Background graph field + simple cursor trail
 ---
 
-<div id="cursor-dot" class="cursor-dot"></div>
-<div id="cursor-outline" class="cursor-outline"></div>
-<div id="cursor-cone-orb" class="cursor-cone-orb"></div>
+<canvas id="bg-graph-field" aria-hidden="true"></canvas>
 
 <style is:global>
-  .cursor-dot,
-  .cursor-outline,
-  .cursor-cone-orb {
-    pointer-events: none;
+  #bg-graph-field {
     position: fixed;
-    top: 0;
-    left: 0;
-    border-radius: 50%;
-    opacity: 0;
-    transform: translate(-50%, -50%);
-    transition: opacity 0.2s ease-in-out, transform 0.08s ease-in-out;
-    will-change: transform;
-    z-index: 10000;
-  }
-
-  .cursor-dot {
-    width: 5px;
-    height: 5px;
-    background: hsl(var(--hue), 70%, 50%);
-    box-shadow: 0 0 5px hsl(var(--hue), 70%, 50%);
-  }
-
-  .cursor-outline {
-    width: 24px;
-    height: 24px;
-    border: 1.5px solid hsl(var(--hue), 70%, 50%);
-    transition: opacity 0.2s ease-in-out, transform 0.08s ease-in-out, border-color 0.2s ease-in-out;
-  }
-
-  .cursor-cone-orb {
-    width: clamp(250px, 25vw, 440px);
-    height: clamp(250px, 25vw, 440px);
-    z-index: 1200;
-    opacity: 0;
-    filter: blur(0.6px) saturate(1.18);
-    mix-blend-mode: normal;
-    --orb-rot: 0deg;
-    --orb-scale: 1;
-    --orb-alpha: 0.38;
-    transform: translate(-50%, -50%) scale(var(--orb-scale)) rotate(var(--orb-rot));
-    transition: opacity 0.25s ease;
-    background:
-      radial-gradient(circle at center, hsla(calc(var(--hue) + 8), 96%, 72%, 0.14) 0%, hsla(calc(var(--hue) + 8), 96%, 72%, 0.05) 36%, transparent 64%),
-      conic-gradient(
-        from 8deg,
-        hsla(calc(var(--hue) + 2), 95%, 70%, 0) 0deg,
-        hsla(calc(var(--hue) + 2), 95%, 70%, var(--orb-alpha)) 24deg,
-        hsla(calc(var(--hue) + 2), 95%, 70%, 0) 56deg,
-        hsla(calc(var(--hue) + 95), 95%, 72%, var(--orb-alpha)) 92deg,
-        hsla(calc(var(--hue) + 95), 95%, 72%, 0) 130deg,
-        hsla(calc(var(--hue) + 152), 95%, 72%, var(--orb-alpha)) 168deg,
-        hsla(calc(var(--hue) + 152), 95%, 72%, 0) 206deg,
-        hsla(calc(var(--hue) + 214), 95%, 74%, var(--orb-alpha)) 246deg,
-        hsla(calc(var(--hue) + 214), 95%, 74%, 0) 286deg,
-        hsla(calc(var(--hue) + 274), 95%, 74%, var(--orb-alpha)) 324deg,
-        hsla(calc(var(--hue) + 274), 95%, 74%, 0) 360deg
-      ),
-      repeating-conic-gradient(
-        from 20deg,
-        hsla(calc(var(--hue) + 20), 95%, 72%, 0) 0deg,
-        hsla(calc(var(--hue) + 20), 95%, 72%, 0) 10deg,
-        hsla(calc(var(--hue) + 20), 95%, 72%, calc(var(--orb-alpha) * 0.48)) 10deg,
-        hsla(calc(var(--hue) + 20), 95%, 72%, calc(var(--orb-alpha) * 0.48)) 14deg,
-        hsla(calc(var(--hue) + 20), 95%, 72%, 0) 14deg,
-        hsla(calc(var(--hue) + 20), 95%, 72%, 0) 30deg
-      );
-    mask-image: radial-gradient(circle at center, black 0%, black 14%, rgba(0, 0, 0, 0.56) 50%, transparent 82%);
-    -webkit-mask-image: radial-gradient(circle at center, black 0%, black 14%, rgba(0, 0, 0, 0.56) 50%, transparent 82%);
-  }
-
-  .click-burst {
-    position: fixed;
-    width: 0;
-    height: 0;
+    inset: 0;
     pointer-events: none;
-    z-index: 9999;
+    z-index: 4;
+    opacity: 0.88;
   }
 
-  .click-ring {
-    position: absolute;
-    width: 14px;
-    height: 14px;
-    border-radius: 999px;
-    border: 2px solid hsl(var(--hue), 78%, 58%);
-    transform: translate(-50%, -50%) scale(0.5);
-    opacity: 0.85;
-    animation: click-ring-out 0.52s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
-  }
-
-  .click-core {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: hsl(var(--hue), 82%, 62%);
-    box-shadow: 0 0 10px hsl(var(--hue), 82%, 62%);
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.9;
-    animation: click-core-pop 0.34s ease-out forwards;
-  }
-
-  .click-spark {
-    position: absolute;
+  .cursor-trail-dot {
+    position: fixed;
+    pointer-events: none;
     width: 6px;
-    height: 2px;
+    height: 6px;
     border-radius: 999px;
-    background: hsl(var(--spark-hue, var(--hue)), 90%, 68%);
-    transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateX(0);
-    opacity: 0.95;
-    animation: click-spark-fly 0.5s ease-out forwards;
+    background: hsl(var(--hue), 78%, 62%);
+    box-shadow: 0 0 6px hsl(var(--hue), 78%, 62%);
+    transform: translate(-50%, -50%);
+    z-index: 10001;
+    animation: cursor-trail-fade 0.42s ease-out forwards;
   }
 
-  @keyframes click-ring-out {
-    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.85; }
-    100% { transform: translate(-50%, -50%) scale(4.2); opacity: 0; }
+  @keyframes cursor-trail-fade {
+    from {
+      opacity: 0.42;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.3);
+    }
   }
 
-  @keyframes click-core-pop {
-    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
-  }
-
-  @keyframes click-spark-fly {
-    0% { transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateX(0); opacity: 0.95; }
-    100% { transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateX(var(--spark-distance, 24px)); opacity: 0; }
-  }
-
-  /* 隐藏在移动设备上 */
   @media (max-width: 768px) {
-    .cursor-dot,
-    .cursor-outline,
-    .cursor-cone-orb {
-      display: none;
+    #bg-graph-field {
+      opacity: 0.62;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .cursor-cone-orb {
+    #bg-graph-field {
       display: none;
     }
   }
 </style>
 
 <script>
-  const cursorRuntime = ((window as any).__fireflyCursorRuntime ||= {
+  const runtime = ((window as any).__fireflyGraphRuntime ||= {
     initialized: false,
-    clickRippleBound: false,
-    clickHandler: null,
+    rafId: 0,
   });
 
-  const cursorDot = document.getElementById('cursor-dot');
-  const cursorOutline = document.getElementById('cursor-outline');
-  const cursorConeOrb = document.getElementById('cursor-cone-orb');
-  const bgGridOverlay = document.getElementById('bg-grid-overlay');
+  if (!runtime.initialized) {
+    runtime.initialized = true;
 
-  if (!cursorRuntime.initialized && cursorDot && cursorOutline && cursorConeOrb) {
-    cursorRuntime.initialized = true;
-
-    let mouseX = 0;
-    let mouseY = 0;
-    let outlineX = 0;
-    let outlineY = 0;
-    let orbX = 0;
-    let orbY = 0;
-    let orbRot = 0;
-    let orbScale = 1;
-    let orbScaleTarget = 1;
-    let orbAlpha = 0.36;
-    let orbAlphaTarget = 0.36;
-    let orbSpinBoost = 0;
-    let orbDriftX = 0;
-    let orbDriftY = 0;
-    let prevMouseX = 0;
-    let prevMouseY = 0;
-    let gridX = window.innerWidth * 0.5;
-    let gridY = window.innerHeight * 0.5;
-    let gridIntensity = 0.34;
-    let gridIntensityTarget = 0.34;
-    let gridRot = 0;
-    let gridRotBoost = 0;
-    let gridBloom = 0.48;
-    let gridBloomTarget = 0.48;
-    let gridScan = 0;
-    let gridScanTarget = 0;
-    let lastMoveAt = 0;
-    let isOverComment = false;
-    let commentTarget: Element | null = null;
-    let cachedRect: DOMRect | null = null;
-    let rectTime = 0;
-    const idleHideDelayMs = 140;
-    const rectCacheMs = 120;
-
-    const showCursor = () => {
-      cursorDot.style.opacity = '1';
-      cursorOutline.style.opacity = '1';
-      cursorConeOrb.style.opacity = '1';
-    };
-
-    const hideCursor = () => {
-      cursorDot.style.opacity = '0';
-      cursorOutline.style.opacity = '0';
-      cursorConeOrb.style.opacity = '0';
-    };
-
-    const onHoverIn = () => {
-      cursorOutline.style.transform = 'translate(-50%, -50%) scale(1.35)';
-      cursorOutline.style.borderWidth = '3px';
-    };
-
-    const onHoverOut = () => {
-      cursorOutline.style.transform = 'translate(-50%, -50%) scale(1)';
-      cursorOutline.style.borderWidth = '2px';
-    };
-
-    const bindHoverElements = (root: ParentNode) => {
-      const elements = root.querySelectorAll('a, button, [role="button"]');
-      elements.forEach((el) => {
-        const htmlEl = el as HTMLElement;
-        if (htmlEl.dataset.cursorListenerAdded) return;
-        htmlEl.dataset.cursorListenerAdded = 'true';
-        htmlEl.addEventListener('mouseenter', onHoverIn);
-        htmlEl.addEventListener('mouseleave', onHoverOut);
-      });
-    };
-
-    const bindHoverHideTargets = (root: ParentNode = document) => {
-      const targets = root.querySelectorAll('iframe, giscus-widget, [data-cursor-hide]');
-      targets.forEach((target) => {
-        const htmlTarget = target as HTMLElement;
-        if (htmlTarget.dataset.cursorVisibilityAdded) return;
-        htmlTarget.dataset.cursorVisibilityAdded = 'true';
-        htmlTarget.addEventListener('mouseenter', hideCursor);
-        htmlTarget.addEventListener('mouseleave', showCursor);
-      });
-      commentTarget = document.querySelector('[data-cursor-hide]');
-      cachedRect = null;
-    };
-
-    document.addEventListener('mousemove', (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      lastMoveAt = performance.now();
-
-      const speed = Math.min(8, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY));
-      const deltaX = mouseX - prevMouseX;
-      const deltaY = mouseY - prevMouseY;
-      prevMouseX = mouseX;
-      prevMouseY = mouseY;
-      orbScaleTarget = 1 + speed * 0.01;
-      orbAlphaTarget = Math.min(0.5, 0.24 + speed * 0.022);
-      orbSpinBoost = Math.min(1.2, orbSpinBoost + speed * 0.04);
-      orbDriftX = Math.max(-9, Math.min(9, orbDriftX + deltaX * 0.14));
-      orbDriftY = Math.max(-9, Math.min(9, orbDriftY + deltaY * 0.14));
-      gridIntensityTarget = Math.min(0.95, 0.34 + speed * 0.07);
-      gridBloomTarget = Math.min(1.15, 0.48 + speed * 0.12);
-      gridRotBoost = Math.min(1.8, gridRotBoost + speed * 0.065);
-      gridScanTarget = Math.max(-8, Math.min(8, gridScanTarget + deltaX * 0.045));
-
-      if (commentTarget) {
-        const now = performance.now();
-        if (!cachedRect || now - rectTime > rectCacheMs) {
-          cachedRect = commentTarget.getBoundingClientRect();
-          rectTime = now;
-        }
-        const padding = 18;
-        isOverComment =
-          mouseX >= cachedRect.left - padding &&
-          mouseX <= cachedRect.right + padding &&
-          mouseY >= cachedRect.top - padding &&
-          mouseY <= cachedRect.bottom + padding;
+    const canvas = document.getElementById("bg-graph-field") as HTMLCanvasElement | null;
+    if (!canvas) {
+      runtime.initialized = false;
+    } else {
+      const ctx = canvas.getContext("2d", { alpha: true });
+      if (!ctx) {
+        runtime.initialized = false;
       } else {
-        isOverComment = false;
-      }
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const cursor = { x: 0, y: 0, active: false };
+        const nodes: Array<{ x: number; y: number; vx: number; vy: number; r: number }> = [];
+        let width = 0;
+        let height = 0;
+        let lastTrailAt = 0;
+        let running = true;
 
-      if (isOverComment) {
-        hideCursor();
-        return;
-      }
+        const maxDist = 148;
+        const breakRadius = 86;
 
-      showCursor();
-      cursorDot.style.left = `${mouseX}px`;
-      cursorDot.style.top = `${mouseY}px`;
-    });
+        const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
-    function animateOutline() {
-      outlineX += (mouseX - outlineX) * 0.45;
-      outlineY += (mouseY - outlineY) * 0.45;
-      orbX += (mouseX - orbX) * 0.14;
-      orbY += (mouseY - orbY) * 0.14;
-      gridX += (mouseX - gridX) * 0.09;
-      gridY += (mouseY - gridY) * 0.09;
-      orbScale += (orbScaleTarget - orbScale) * 0.11;
-      orbAlpha += (orbAlphaTarget - orbAlpha) * 0.08;
-      gridIntensity += (gridIntensityTarget - gridIntensity) * 0.08;
-      gridBloom += (gridBloomTarget - gridBloom) * 0.08;
-      gridScan += (gridScanTarget - gridScan) * 0.08;
-      orbSpinBoost *= 0.9;
-      orbDriftX *= 0.84;
-      orbDriftY *= 0.84;
-      gridIntensityTarget *= 0.965;
-      gridBloomTarget *= 0.972;
-      gridScanTarget *= 0.9;
-      gridRotBoost *= 0.92;
-      gridRot = (gridRot + 0.16 + gridRotBoost) % 360;
-      const pulse = Math.sin(performance.now() * 0.003) * 0.014;
-      orbRot = (orbRot + 0.09 + orbSpinBoost * 0.56) % 360;
+        function resize() {
+          width = window.innerWidth;
+          height = window.innerHeight;
+          canvas.width = Math.floor(width * dpr);
+          canvas.height = Math.floor(height * dpr);
+          canvas.style.width = `${width}px`;
+          canvas.style.height = `${height}px`;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      cursorOutline.style.opacity = '1';
-      cursorOutline.style.left = `${outlineX}px`;
-      cursorOutline.style.top = `${outlineY}px`;
-      cursorConeOrb.style.left = `${orbX + orbDriftX}px`;
-      cursorConeOrb.style.top = `${orbY + orbDriftY}px`;
-      cursorConeOrb.style.setProperty('--orb-rot', `${orbRot}deg`);
-      cursorConeOrb.style.setProperty('--orb-scale', `${(orbScale + pulse).toFixed(2)}`);
-      cursorConeOrb.style.setProperty('--orb-alpha', orbAlpha.toFixed(2));
-      if (bgGridOverlay) {
-        bgGridOverlay.style.setProperty('--grid-x', `${gridX.toFixed(1)}px`);
-        bgGridOverlay.style.setProperty('--grid-y', `${gridY.toFixed(1)}px`);
-        bgGridOverlay.style.setProperty('--grid-intensity', gridIntensity.toFixed(3));
-        bgGridOverlay.style.setProperty('--grid-rot', `${gridRot.toFixed(2)}deg`);
-        bgGridOverlay.style.setProperty('--grid-bloom', gridBloom.toFixed(3));
-        bgGridOverlay.style.setProperty('--grid-scan', gridScan.toFixed(3));
-      }
-
-      if (isOverComment) {
-        const now = performance.now();
-        if (now - lastMoveAt > idleHideDelayMs) {
-          hideCursor();
+          const targetCount = Math.max(24, Math.min(90, Math.floor((width * height) / 26000)));
+          if (nodes.length < targetCount) {
+            for (let i = nodes.length; i < targetCount; i++) {
+              nodes.push({
+                x: rand(0, width),
+                y: rand(0, height),
+                vx: rand(-0.35, 0.35),
+                vy: rand(-0.35, 0.35),
+                r: rand(1.1, 2.3),
+              });
+            }
+          } else {
+            nodes.length = targetCount;
+          }
         }
-      }
 
-      requestAnimationFrame(animateOutline);
+        function distToSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
+          const abx = bx - ax;
+          const aby = by - ay;
+          const apx = px - ax;
+          const apy = py - ay;
+          const ab2 = abx * abx + aby * aby || 1;
+          const t = Math.max(0, Math.min(1, (apx * abx + apy * aby) / ab2));
+          const cx = ax + abx * t;
+          const cy = ay + aby * t;
+          return Math.hypot(px - cx, py - cy);
+        }
+
+        function emitTrail(x: number, y: number) {
+          if (window.innerWidth <= 768) return;
+          const now = performance.now();
+          if (now - lastTrailAt < 26) return;
+          lastTrailAt = now;
+
+          const dot = document.createElement("div");
+          dot.className = "cursor-trail-dot";
+          dot.style.left = `${x}px`;
+          dot.style.top = `${y}px`;
+          document.body.appendChild(dot);
+          dot.addEventListener("animationend", () => dot.remove());
+        }
+
+        function animate() {
+          if (!running) return;
+
+          ctx.clearRect(0, 0, width, height);
+          const hue = Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue("--hue").trim(), 10) || 205;
+
+          for (let i = 0; i < nodes.length; i++) {
+            const n = nodes[i];
+
+            n.vx += rand(-0.012, 0.012);
+            n.vy += rand(-0.012, 0.012);
+
+            const speed = Math.hypot(n.vx, n.vy);
+            if (speed > 0.55) {
+              n.vx = (n.vx / speed) * 0.55;
+              n.vy = (n.vy / speed) * 0.55;
+            }
+
+            n.x += n.vx;
+            n.y += n.vy;
+
+            if (n.x < 0 || n.x > width) n.vx *= -1;
+            if (n.y < 0 || n.y > height) n.vy *= -1;
+
+            n.x = Math.max(0, Math.min(width, n.x));
+            n.y = Math.max(0, Math.min(height, n.y));
+          }
+
+          for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+              const a = nodes[i];
+              const b = nodes[j];
+              const dx = b.x - a.x;
+              const dy = b.y - a.y;
+              const d2 = dx * dx + dy * dy;
+              if (d2 > maxDist * maxDist) continue;
+
+              if (cursor.active) {
+                const dseg = distToSegment(cursor.x, cursor.y, a.x, a.y, b.x, b.y);
+                if (dseg < breakRadius) continue;
+              }
+
+              const d = Math.sqrt(d2);
+              const alpha = Math.pow(1 - d / maxDist, 1.35) * 0.5;
+              ctx.strokeStyle = `hsla(${hue}, 88%, 66%, ${alpha.toFixed(3)})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
+          }
+
+          for (let i = 0; i < nodes.length; i++) {
+            const n = nodes[i];
+            ctx.fillStyle = `hsla(${hue}, 92%, 70%, 0.65)`;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          runtime.rafId = requestAnimationFrame(animate);
+        }
+
+        const onMove = (e: MouseEvent) => {
+          cursor.x = e.clientX;
+          cursor.y = e.clientY;
+          cursor.active = true;
+          emitTrail(cursor.x, cursor.y);
+        };
+
+        const onLeave = () => {
+          cursor.active = false;
+        };
+
+        const onVisibility = () => {
+          if (document.hidden) {
+            running = false;
+            cancelAnimationFrame(runtime.rafId);
+          } else {
+            if (!running) {
+              running = true;
+              runtime.rafId = requestAnimationFrame(animate);
+            }
+          }
+        };
+
+        resize();
+        window.addEventListener("resize", resize, { passive: true });
+        document.addEventListener("mousemove", onMove, { passive: true });
+        document.addEventListener("mouseleave", onLeave, { passive: true });
+        window.addEventListener("blur", onLeave, { passive: true });
+        document.addEventListener("visibilitychange", onVisibility, { passive: true });
+
+        runtime.rafId = requestAnimationFrame(animate);
+      }
     }
-
-    animateOutline();
-
-    document.addEventListener('mouseenter', showCursor);
-    document.addEventListener('mouseleave', hideCursor);
-    window.addEventListener('blur', hideCursor);
-    window.addEventListener('mouseout', (e) => {
-      if (!e.relatedTarget && !e.toElement) {
-        hideCursor();
-      }
-    });
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) hideCursor();
-    });
-
-    document.addEventListener('mousedown', () => {
-      cursorOutline.style.transform = 'translate(-50%, -50%) scale(0.8)';
-    });
-
-    document.addEventListener('mouseup', () => {
-      cursorOutline.style.transform = 'translate(-50%, -50%) scale(1)';
-    });
-
-    bindHoverElements(document);
-    bindHoverHideTargets(document);
-
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        mutation.addedNodes.forEach((node) => {
-          if (!(node instanceof HTMLElement)) return;
-          bindHoverElements(node);
-          bindHoverHideTargets(node);
-        });
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
   }
-
-  function createRipple(e: MouseEvent) {
-    if (window.innerWidth <= 768) return;
-
-    const burst = document.createElement('div');
-    burst.className = 'click-burst';
-    burst.style.left = `${e.clientX}px`;
-    burst.style.top = `${e.clientY}px`;
-
-    const ring = document.createElement('span');
-    ring.className = 'click-ring';
-    burst.appendChild(ring);
-
-    const core = document.createElement('span');
-    core.className = 'click-core';
-    burst.appendChild(core);
-
-    const sparks = 8;
-    for (let i = 0; i < sparks; i++) {
-      const spark = document.createElement('span');
-      spark.className = 'click-spark';
-      spark.style.setProperty('--spark-angle', `${(360 / sparks) * i}deg`);
-      spark.style.setProperty('--spark-distance', `${18 + Math.random() * 14}px`);
-      spark.style.setProperty('--spark-hue', `${(Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hue').trim(), 10) || 205) + i * 6}`);
-      burst.appendChild(spark);
-    }
-
-    document.body.appendChild(burst);
-    window.setTimeout(() => burst.remove(), 560);
-  }
-
-  if (cursorRuntime.clickHandler) {
-    document.removeEventListener('click', cursorRuntime.clickHandler);
-  }
-  cursorRuntime.clickHandler = createRipple;
-  cursorRuntime.clickRippleBound = true;
-  document.addEventListener('click', cursorRuntime.clickHandler);
 </script>

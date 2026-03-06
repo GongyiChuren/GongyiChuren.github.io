@@ -39,13 +39,13 @@
   .cursor-cone-orb {
     width: clamp(250px, 25vw, 440px);
     height: clamp(250px, 25vw, 440px);
-    z-index: 38;
+    z-index: 1200;
     opacity: 0;
     filter: blur(0.6px) saturate(1.18);
-    mix-blend-mode: soft-light;
+    mix-blend-mode: normal;
     --orb-rot: 0deg;
     --orb-scale: 1;
-    --orb-alpha: 0.3;
+    --orb-alpha: 0.38;
     transform: translate(-50%, -50%) scale(var(--orb-scale)) rotate(var(--orb-rot));
     transition: opacity 0.25s ease;
     background:
@@ -183,12 +183,12 @@
     let prevMouseY = 0;
     let gridX = window.innerWidth * 0.5;
     let gridY = window.innerHeight * 0.5;
-    let gridIntensity = 0.24;
-    let gridIntensityTarget = 0.24;
+    let gridIntensity = 0.34;
+    let gridIntensityTarget = 0.34;
     let gridRot = 0;
     let gridRotBoost = 0;
-    let gridBloom = 0.35;
-    let gridBloomTarget = 0.35;
+    let gridBloom = 0.48;
+    let gridBloomTarget = 0.48;
     let gridScan = 0;
     let gridScanTarget = 0;
     let lastMoveAt = 0;
@@ -260,8 +260,8 @@
       orbSpinBoost = Math.min(1.2, orbSpinBoost + speed * 0.04);
       orbDriftX = Math.max(-9, Math.min(9, orbDriftX + deltaX * 0.14));
       orbDriftY = Math.max(-9, Math.min(9, orbDriftY + deltaY * 0.14));
-      gridIntensityTarget = Math.min(0.62, 0.24 + speed * 0.045);
-      gridBloomTarget = Math.min(0.9, 0.34 + speed * 0.08);
+      gridIntensityTarget = Math.min(0.95, 0.34 + speed * 0.07);
+      gridBloomTarget = Math.min(1.15, 0.48 + speed * 0.12);
       gridRotBoost = Math.min(1.8, gridRotBoost + speed * 0.065);
       gridScanTarget = Math.max(-8, Math.min(8, gridScanTarget + deltaX * 0.045));
 
@@ -306,8 +306,8 @@
       orbSpinBoost *= 0.9;
       orbDriftX *= 0.84;
       orbDriftY *= 0.84;
-      gridIntensityTarget *= 0.96;
-      gridBloomTarget *= 0.97;
+      gridIntensityTarget *= 0.965;
+      gridBloomTarget *= 0.972;
       gridScanTarget *= 0.9;
       gridRotBoost *= 0.92;
       gridRot = (gridRot + 0.16 + gridRotBoost) % 360;

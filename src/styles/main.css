@@ -974,27 +974,27 @@ widget-layout.card-base:hover {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 34;
+  z-index: 46;
   --grid-x: 50%;
   --grid-y: 50%;
-  --grid-intensity: 0.24;
+  --grid-intensity: 0.34;
   --grid-size: 34px;
   --grid-rot: 0deg;
-  --grid-bloom: 0.35;
+  --grid-bloom: 0.48;
   --grid-scan: 0;
   background:
     radial-gradient(
       620px circle at var(--grid-x) var(--grid-y),
-      color-mix(in srgb, var(--primary) calc(var(--grid-bloom) * 30%), transparent) 0%,
-      color-mix(in srgb, var(--primary) calc(var(--grid-bloom) * 14%), transparent) 24%,
+      color-mix(in srgb, var(--primary) calc(var(--grid-bloom) * 38%), transparent) 0%,
+      color-mix(in srgb, var(--primary) calc(var(--grid-bloom) * 18%), transparent) 24%,
       transparent 64%
     ),
     repeating-conic-gradient(
       from var(--grid-rot) at var(--grid-x) var(--grid-y),
-      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 22%), transparent) 0deg,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 28%), transparent) 0deg,
       transparent 8deg,
       transparent 26deg,
-      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 14%), transparent) 30deg,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 18%), transparent) 30deg,
       transparent 38deg,
       transparent 60deg
     ),
@@ -1006,18 +1006,18 @@ widget-layout.card-base:hover {
     ),
     linear-gradient(
       to right,
-      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 14%), transparent) 1px,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 20%), transparent) 1px,
       transparent 1px
     ),
     linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 14%), transparent) 1px,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 20%), transparent) 1px,
       transparent 1px
     ),
     linear-gradient(
       105deg,
       transparent 35%,
-      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 22%), transparent) calc(46% + var(--grid-scan) * 1%),
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 28%), transparent) calc(46% + var(--grid-scan) * 1%),
       transparent calc(56% + var(--grid-scan) * 1%)
     );
   background-size:
@@ -1027,10 +1027,11 @@ widget-layout.card-base:hover {
     var(--grid-size) var(--grid-size),
     var(--grid-size) var(--grid-size),
     100% 100%;
-  opacity: 0.9;
-  mix-blend-mode: soft-light;
+  opacity: 0.92;
+  mix-blend-mode: normal;
   transition: opacity 0.25s ease, filter 0.25s ease;
-  filter: saturate(1.12);
+  filter: saturate(1.22) contrast(1.03);
+  animation: grid-overlay-drift 13s linear infinite;
 }
 
 #bg-grid-overlay::before,
@@ -1045,20 +1046,28 @@ widget-layout.card-base:hover {
   background:
     radial-gradient(380px circle at var(--grid-x) var(--grid-y), color-mix(in srgb, var(--primary) 20%, transparent) 0%, transparent 72%),
     radial-gradient(220px circle at calc(var(--grid-x) + 9%) calc(var(--grid-y) - 8%), color-mix(in srgb, var(--primary) 14%, transparent) 0%, transparent 82%);
-  opacity: 0.62;
-  filter: blur(8px);
+  opacity: 0.72;
+  filter: blur(9px);
 }
 
 #bg-grid-overlay::after {
   background: radial-gradient(ellipse at var(--grid-x) var(--grid-y), color-mix(in srgb, var(--primary) 15%, transparent) 0%, transparent 58%);
   mix-blend-mode: screen;
-  opacity: 0.28;
+  opacity: 0.34;
 }
 
 :root.dark #bg-grid-overlay {
   opacity: 1;
   mix-blend-mode: screen;
-  filter: saturate(1.2);
+  filter: saturate(1.3) contrast(1.04);
+}
+
+@keyframes grid-overlay-drift {
+  0% { transform: translate3d(0, 0, 0); }
+  25% { transform: translate3d(-0.6%, -0.2%, 0); }
+  50% { transform: translate3d(0.4%, -0.5%, 0); }
+  75% { transform: translate3d(0.2%, 0.4%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
 @media (max-width: 768px) {

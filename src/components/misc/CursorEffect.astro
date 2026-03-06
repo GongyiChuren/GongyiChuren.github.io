@@ -120,7 +120,7 @@
         let running = true;
         let frameCount = 0;
 
-        const maxDist = 192;
+        const maxDist = 208;
         const breakRadius = 96;
         let uiRect: { left: number; right: number; top: number; bottom: number } | null = null;
 
@@ -187,7 +187,7 @@
 
           updateUiRect();
 
-          const targetCount = Math.max(44, Math.min(165, Math.floor((width * height) / 17000)));
+          const targetCount = Math.max(56, Math.min(198, Math.floor((width * height) / 14500)));
           if (nodes.length < targetCount) {
             for (let i = nodes.length; i < targetCount; i++) {
               const p = samplePointPreferOutside();

@@ -126,7 +126,7 @@
         const minSpeed = 0.09;
         const edgeFlashCycleMs = 9000;
         const edgeFlashDurationMs = 240;
-        const clusterCount = 6;
+        const clusterCount = 8;
         const cursorForceRadius = 110;
         let uiRects: Array<{ left: number; right: number; top: number; bottom: number }> = [];
         const anchors: Array<{ x: number; y: number; vx: number; vy: number }> = [];
@@ -233,7 +233,7 @@
           updateUiRects();
           ensureAnchors();
 
-          const targetCount = Math.max(280, Math.min(990, Math.floor((width * height) / 2900)));
+          const targetCount = Math.max(340, Math.min(1200, Math.floor((width * height) / 2400)));
           if (nodes.length < targetCount) {
             for (let i = nodes.length; i < targetCount; i++) {
               const p = samplePointPreferOutside();
@@ -242,7 +242,7 @@
                 y: p.y,
                 vx: rand(-0.4, 0.4),
                 vy: rand(-0.4, 0.4),
-                r: rand(1.4, 2.9),
+                r: rand(0.9, 3.6),
               });
             }
           } else {

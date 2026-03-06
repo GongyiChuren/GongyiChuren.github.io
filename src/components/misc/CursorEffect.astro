@@ -122,11 +122,14 @@
 
         const maxDist = 208;
         const breakRadius = 96;
-        const repelDist = 26;
+        const repelDist = 34;
         const minSpeed = 0.09;
         const edgeFlashCycleMs = 9000;
         const edgeFlashDurationMs = 240;
+        const clusterCount = 6;
+        const cursorForceRadius = 110;
         let uiRects: Array<{ left: number; right: number; top: number; bottom: number }> = [];
+        const anchors: Array<{ x: number; y: number; vx: number; vy: number }> = [];
 
         const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -202,6 +205,22 @@
           return point;
         }
 
+        function ensureAnchors() {
+          if (anchors.length === 0) {
+            for (let i = 0; i < clusterCount; i++) {
+              const p = samplePointPreferOutside();
+              anchors.push({
+                x: p.x,
+                y: p.y,
+                vx: rand(-0.22, 0.22),
+                vy: rand(-0.22, 0.22),
+              });
+            }
+          } else if (anchors.length > clusterCount) {
+            anchors.length = clusterCount;
+          }
+        }
+
         function resize() {
           width = window.innerWidth;
           height = window.innerHeight;
@@ -212,6 +231,7 @@
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
           updateUiRects();
+          ensureAnchors();
 
           const targetCount = Math.max(280, Math.min(990, Math.floor((width * height) / 2900)));
           if (nodes.length < targetCount) {
@@ -283,12 +303,45 @@
 
           const t = performance.now() * 0.00038;
 
+          for (let i = 0; i < anchors.length; i++) {
+            const a = anchors[i];
+            a.vx += rand(-0.008, 0.008);
+            a.vy += rand(-0.008, 0.008);
+            const as = Math.hypot(a.vx, a.vy);
+            if (as > 0.3) {
+              a.vx = (a.vx / as) * 0.3;
+              a.vy = (a.vy / as) * 0.3;
+            }
+            a.x += a.vx;
+            a.y += a.vy;
+            if (a.x < 0 || a.x > width) a.vx *= -1;
+            if (a.y < 0 || a.y > height) a.vy *= -1;
+            a.x = Math.max(0, Math.min(width, a.x));
+            a.y = Math.max(0, Math.min(height, a.y));
+          }
+
           for (let i = 0; i < nodes.length; i++) {
             const n = nodes[i];
 
             // 轻流场，避免局部停滞
             n.vx += Math.sin(t + n.y * 0.012) * 0.005;
             n.vy += Math.cos(t + n.x * 0.012) * 0.005;
+
+            // 多锚点吸引：形成多团动态簇，而不是两团
+            let nearest = anchors[0];
+            let nearestD2 = Number.POSITIVE_INFINITY;
+            for (let k = 0; k < anchors.length; k++) {
+              const a = anchors[k];
+              const adx = a.x - n.x;
+              const ady = a.y - n.y;
+              const ad2 = adx * adx + ady * ady;
+              if (ad2 < nearestD2) {
+                nearestD2 = ad2;
+                nearest = a;
+              }
+            }
+            n.vx += (nearest.x - n.x) * 0.00075;
+            n.vy += (nearest.y - n.y) * 0.00075;
 
             if (isInUi(n.x, n.y)) {
               const centerX = width * 0.5;
@@ -300,14 +353,24 @@
               n.vy += (pushY / len) * 0.03;
             }
 
+            // 鼠标互动（除断线外）：靠近时节点被推开并带一点旋涡感
+            if (cursor.active) {
+              const mdx = n.x - cursor.x;
+              const mdy = n.y - cursor.y;
+              const md2 = mdx * mdx + mdy * mdy;
+              if (md2 > 0 && md2 < cursorForceRadius * cursorForceRadius) {
+                const md = Math.sqrt(md2);
+                const nx = mdx / md;
+                const ny = mdy / md;
+                const f = (1 - md / cursorForceRadius) * 0.055;
+                n.vx += nx * f - ny * f * 0.32;
+                n.vy += ny * f + nx * f * 0.32;
+              }
+            }
+
             // 底部增强：上方节点缓慢下沉
             if (n.y < height * 0.8) {
               n.vy += 0.004;
-            }
-
-            // 两侧分散：避免侧边挤成一坨
-            if (n.x < width * 0.2 || n.x > width * 0.8) {
-              n.vy += rand(-0.016, 0.016);
             }
 
             // 顶部保留少量，不让全部下坠

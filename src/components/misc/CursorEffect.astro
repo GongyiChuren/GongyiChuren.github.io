@@ -113,7 +113,16 @@
         const cursor = { x: 0, y: 0, active: false };
         let haloX = 0;
         let haloY = 0;
-        const nodes: Array<{ x: number; y: number; vx: number; vy: number; r: number }> = [];
+        const nodes: Array<{
+          x: number;
+          y: number;
+          vx: number;
+          vy: number;
+          r: number;
+          cluster: number;
+          orbitR: number;
+          orbitPhase: number;
+        }> = [];
         let width = 0;
         let height = 0;
         let lastTrailAt = 0;
@@ -249,10 +258,24 @@
                 vx: rand(-0.4, 0.4),
                 vy: rand(-0.4, 0.4),
                 r: rand(0.9, 3.6),
+                cluster: i % clusterCount,
+                orbitR: rand(95, 190),
+                orbitPhase: rand(0, Math.PI * 2),
               });
             }
           } else {
             nodes.length = targetCount;
+          }
+
+          // 重平衡簇分配：保证每簇点数接近平均
+          for (let i = 0; i < nodes.length; i++) {
+            nodes[i].cluster = i % clusterCount;
+            if (!Number.isFinite(nodes[i].orbitR)) {
+              nodes[i].orbitR = rand(95, 190);
+            }
+            if (!Number.isFinite(nodes[i].orbitPhase)) {
+              nodes[i].orbitPhase = rand(0, Math.PI * 2);
+            }
           }
         }
 
@@ -327,21 +350,13 @@
             n.vx += Math.sin(t + n.y * 0.012) * 0.005;
             n.vy += Math.cos(t + n.x * 0.012) * 0.005;
 
-            // 多锚点吸引：形成多团动态簇，而不是两团
-            let nearest = anchors[0];
-            let nearestD2 = Number.POSITIVE_INFINITY;
-            for (let k = 0; k < anchors.length; k++) {
-              const a = anchors[k];
-              const adx = a.x - n.x;
-              const ady = a.y - n.y;
-              const ad2 = adx * adx + ady * ady;
-              if (ad2 < nearestD2) {
-                nearestD2 = ad2;
-                nearest = a;
-              }
-            }
-            n.vx += (nearest.x - n.x) * 0.00042;
-            n.vy += (nearest.y - n.y) * 0.00042;
+            // 固定簇归属 + 轨道半径：每簇点数均衡，簇范围更大
+            const anchor = anchors[n.cluster % anchors.length];
+            const orbitAngle = t * 1.3 + n.orbitPhase;
+            const tx = anchor.x + Math.cos(orbitAngle) * n.orbitR;
+            const ty = anchor.y + Math.sin(orbitAngle) * n.orbitR * 0.72;
+            n.vx += (tx - n.x) * 0.0008;
+            n.vy += (ty - n.y) * 0.0008;
 
             if (isInUi(n.x, n.y)) {
               const centerX = width * 0.5;

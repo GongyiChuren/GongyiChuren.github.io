@@ -120,9 +120,9 @@
         let running = true;
         let frameCount = 0;
 
-        const maxDist = 208;
+        const maxDist = 196;
         const breakRadius = 96;
-        const repelDist = 34;
+        const repelDist = 42;
         const minSpeed = 0.09;
         const edgeFlashCycleMs = 9000;
         const edgeFlashDurationMs = 240;
@@ -233,7 +233,7 @@
           updateUiRects();
           ensureAnchors();
 
-          const targetCount = Math.max(340, Math.min(1200, Math.floor((width * height) / 2400)));
+          const targetCount = Math.max(420, Math.min(1450, Math.floor((width * height) / 2050)));
           if (nodes.length < targetCount) {
             for (let i = nodes.length; i < targetCount; i++) {
               const p = samplePointPreferOutside();
@@ -340,8 +340,8 @@
                 nearest = a;
               }
             }
-            n.vx += (nearest.x - n.x) * 0.00075;
-            n.vy += (nearest.y - n.y) * 0.00075;
+            n.vx += (nearest.x - n.x) * 0.00058;
+            n.vy += (nearest.y - n.y) * 0.00058;
 
             if (isInUi(n.x, n.y)) {
               const centerX = width * 0.5;
@@ -425,7 +425,7 @@
               if (d2 === 0 || d2 > repelDist * repelDist) continue;
 
               const d = Math.sqrt(d2);
-              const force = (1 - d / repelDist) * 0.019;
+              const force = (1 - d / repelDist) * 0.027;
               const nx = dx / d;
               const ny = dy / d;
 

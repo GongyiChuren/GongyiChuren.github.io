@@ -147,14 +147,33 @@
         }
 
         function samplePointPreferOutside() {
-          if (!uiRect || Math.random() < 0.38) {
-            return { x: rand(0, width), y: rand(0, height) };
+          const p = Math.random();
+          let point: { x: number; y: number };
+
+          // 下方区域更密
+          if (p < 0.46) {
+            point = { x: rand(0, width), y: rand(height * 0.64, height) };
+          // 左右两侧更密
+          } else if (p < 0.84) {
+            if (Math.random() < 0.5) {
+              point = { x: rand(0, width * 0.2), y: rand(height * 0.2, height) };
+            } else {
+              point = { x: rand(width * 0.8, width), y: rand(height * 0.2, height) };
+            }
+          // 顶部保留少量
+          } else {
+            point = { x: rand(0, width), y: rand(0, height * 0.28) };
           }
-          for (let i = 0; i < 8; i++) {
-            const point = { x: rand(0, width), y: rand(0, height) };
-            if (!isInUi(point.x, point.y)) return point;
+
+          if (!uiRect || !isInUi(point.x, point.y)) {
+            return point;
           }
-          return { x: rand(0, width), y: rand(0, height) };
+
+          for (let i = 0; i < 10; i++) {
+            const retry = { x: rand(0, width), y: rand(0, height) };
+            if (!isInUi(retry.x, retry.y)) return retry;
+          }
+          return point;
         }
 
         function resize() {
@@ -242,6 +261,15 @@
               const len = Math.hypot(pushX, pushY) || 1;
               n.vx += (pushX / len) * 0.03;
               n.vy += (pushY / len) * 0.03;
+            }
+
+            // 轻微引导到下方与两侧，保留顶部少量节点
+            if (n.y < height * 0.22 && Math.random() < 0.35) {
+              n.vy += 0.01;
+            }
+            if (n.x > width * 0.3 && n.x < width * 0.7 && n.y > height * 0.28 && Math.random() < 0.25) {
+              n.vx += n.x < width * 0.5 ? -0.012 : 0.012;
+              n.vy += 0.006;
             }
 
             n.vx += rand(-0.012, 0.012);

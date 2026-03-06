@@ -23,51 +23,49 @@
   }
 
   .cursor-dot {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     background: hsl(var(--hue), 70%, 50%);
-    box-shadow: 0 0 6px hsl(var(--hue), 70%, 50%);
+    box-shadow: 0 0 5px hsl(var(--hue), 70%, 50%);
   }
 
   .cursor-outline {
-    width: 28px;
-    height: 28px;
-    border: 2px solid hsl(var(--hue), 70%, 50%);
+    width: 24px;
+    height: 24px;
+    border: 1.5px solid hsl(var(--hue), 70%, 50%);
     transition: opacity 0.2s ease-in-out, transform 0.08s ease-in-out, border-color 0.2s ease-in-out;
   }
 
   .cursor-cone-orb {
-    width: clamp(200px, 18vw, 300px);
-    height: clamp(200px, 18vw, 300px);
+    width: clamp(240px, 24vw, 420px);
+    height: clamp(240px, 24vw, 420px);
     z-index: 6;
     opacity: 0;
-    filter: saturate(1.06);
-    mix-blend-mode: normal;
+    filter: blur(0.8px) saturate(1.1);
+    mix-blend-mode: soft-light;
     --orb-rot: 0deg;
     --orb-scale: 1;
-    --orb-alpha: 0.3;
+    --orb-alpha: 0.24;
     transform: translate(-50%, -50%) scale(var(--orb-scale)) rotate(var(--orb-rot));
     transition: opacity 0.25s ease;
     background:
-      radial-gradient(circle at center, hsla(var(--hue), 88%, 62%, 0.12) 0%, hsla(var(--hue), 88%, 62%, 0.05) 36%, transparent 62%),
+      radial-gradient(circle at center, hsla(calc(var(--hue) + 10), 96%, 72%, 0.12) 0%, hsla(calc(var(--hue) + 10), 96%, 72%, 0.04) 36%, transparent 64%),
       conic-gradient(
-        from 12deg,
-        hsla(var(--hue), 92%, 66%, 0) 0deg,
-        hsla(var(--hue), 92%, 66%, var(--orb-alpha)) 22deg,
-        hsla(var(--hue), 92%, 66%, 0) 48deg,
-        hsla(calc(var(--hue) + 34), 92%, 68%, var(--orb-alpha)) 82deg,
-        hsla(calc(var(--hue) + 34), 92%, 68%, 0) 114deg,
-        hsla(calc(var(--hue) + 12), 92%, 66%, var(--orb-alpha)) 150deg,
-        hsla(calc(var(--hue) + 12), 92%, 66%, 0) 186deg,
-        hsla(calc(var(--hue) + 46), 92%, 68%, var(--orb-alpha)) 226deg,
-        hsla(calc(var(--hue) + 46), 92%, 68%, 0) 258deg,
-        hsla(calc(var(--hue) + 20), 92%, 66%, var(--orb-alpha)) 300deg,
-        hsla(calc(var(--hue) + 20), 92%, 66%, 0) 332deg,
-        hsla(var(--hue), 92%, 66%, var(--orb-alpha)) 352deg,
-        hsla(var(--hue), 92%, 66%, 0) 360deg
+        from 8deg,
+        hsla(calc(var(--hue) + 2), 95%, 70%, 0) 0deg,
+        hsla(calc(var(--hue) + 2), 95%, 70%, var(--orb-alpha)) 24deg,
+        hsla(calc(var(--hue) + 2), 95%, 70%, 0) 56deg,
+        hsla(calc(var(--hue) + 95), 95%, 72%, var(--orb-alpha)) 92deg,
+        hsla(calc(var(--hue) + 95), 95%, 72%, 0) 130deg,
+        hsla(calc(var(--hue) + 152), 95%, 72%, var(--orb-alpha)) 168deg,
+        hsla(calc(var(--hue) + 152), 95%, 72%, 0) 206deg,
+        hsla(calc(var(--hue) + 214), 95%, 74%, var(--orb-alpha)) 246deg,
+        hsla(calc(var(--hue) + 214), 95%, 74%, 0) 286deg,
+        hsla(calc(var(--hue) + 274), 95%, 74%, var(--orb-alpha)) 324deg,
+        hsla(calc(var(--hue) + 274), 95%, 74%, 0) 360deg
       );
-    mask-image: radial-gradient(circle at center, black 0%, black 21%, rgba(0, 0, 0, 0.58) 50%, transparent 82%);
-    -webkit-mask-image: radial-gradient(circle at center, black 0%, black 21%, rgba(0, 0, 0, 0.58) 50%, transparent 82%);
+    mask-image: radial-gradient(circle at center, black 0%, black 16%, rgba(0, 0, 0, 0.5) 48%, transparent 82%);
+    -webkit-mask-image: radial-gradient(circle at center, black 0%, black 16%, rgba(0, 0, 0, 0.5) 48%, transparent 82%);
   }
 
   .click-burst {
@@ -232,16 +230,16 @@
       mouseY = e.clientY;
       lastMoveAt = performance.now();
 
-      const speed = Math.min(8, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY));
+      const speed = Math.min(7, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY));
       const deltaX = mouseX - prevMouseX;
       const deltaY = mouseY - prevMouseY;
       prevMouseX = mouseX;
       prevMouseY = mouseY;
-      orbScaleTarget = 1 + speed * 0.006;
-      orbAlphaTarget = Math.min(0.42, 0.24 + speed * 0.012);
-      orbSpinBoost = Math.min(0.8, orbSpinBoost + speed * 0.03);
-      orbDriftX = Math.max(-8, Math.min(8, orbDriftX + deltaX * 0.12));
-      orbDriftY = Math.max(-8, Math.min(8, orbDriftY + deltaY * 0.12));
+      orbScaleTarget = 1 + speed * 0.008;
+      orbAlphaTarget = Math.min(0.38, 0.2 + speed * 0.018);
+      orbSpinBoost = Math.min(1.0, orbSpinBoost + speed * 0.035);
+      orbDriftX = Math.max(-9, Math.min(9, orbDriftX + deltaX * 0.14));
+      orbDriftY = Math.max(-9, Math.min(9, orbDriftY + deltaY * 0.14));
 
       if (commentTarget) {
         const now = performance.now();
@@ -272,14 +270,14 @@
     function animateOutline() {
       outlineX += (mouseX - outlineX) * 0.45;
       outlineY += (mouseY - outlineY) * 0.45;
-      orbX += (mouseX - orbX) * 0.12;
-      orbY += (mouseY - orbY) * 0.12;
-      orbScale += (orbScaleTarget - orbScale) * 0.1;
+      orbX += (mouseX - orbX) * 0.13;
+      orbY += (mouseY - orbY) * 0.13;
+      orbScale += (orbScaleTarget - orbScale) * 0.11;
       orbAlpha += (orbAlphaTarget - orbAlpha) * 0.08;
       orbSpinBoost *= 0.9;
       orbDriftX *= 0.84;
       orbDriftY *= 0.84;
-      orbRot = (orbRot + 0.1 + orbSpinBoost * 0.55) % 360;
+      orbRot = (orbRot + 0.08 + orbSpinBoost * 0.5) % 360;
 
       cursorOutline.style.opacity = '1';
       cursorOutline.style.left = `${outlineX}px`;

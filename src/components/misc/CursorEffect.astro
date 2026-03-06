@@ -124,7 +124,8 @@
         const breakRadius = 96;
         const repelDist = 26;
         const minSpeed = 0.09;
-        const showEdges = false;
+        const edgeFlashCycleMs = 9000;
+        const edgeFlashDurationMs = 240;
         let uiRects: Array<{ left: number; right: number; top: number; bottom: number }> = [];
 
         const rand = (min: number, max: number) => Math.random() * (max - min) + min;
@@ -265,6 +266,11 @@
 
           ctx.clearRect(0, 0, width, height);
           const hue = Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue("--hue").trim(), 10) || 205;
+          const nowMs = performance.now();
+          const flashPhase = nowMs % edgeFlashCycleMs;
+          const edgeFlash = flashPhase < edgeFlashDurationMs
+            ? Math.sin((flashPhase / edgeFlashDurationMs) * Math.PI) * 0.14
+            : 0;
 
           if (cursorCore && cursorHalo) {
             haloX += (cursor.x - haloX) * 0.24;
@@ -397,9 +403,10 @@
 
               const nearFactor = d < 18 ? d / 18 : 1;
               const alpha = Math.pow(1 - d / maxDist, 1.25) * 0.62 * nearFactor;
-              if (showEdges) {
-                ctx.strokeStyle = `hsla(${hue}, 88%, 66%, ${alpha.toFixed(3)})`;
-                ctx.lineWidth = 1.35;
+              if (edgeFlash > 0.002) {
+                const flashAlpha = alpha * edgeFlash;
+                ctx.strokeStyle = `hsla(${hue}, 88%, 70%, ${flashAlpha.toFixed(3)})`;
+                ctx.lineWidth = 0.6;
                 ctx.beginPath();
                 ctx.moveTo(a.x, a.y);
                 ctx.lineTo(b.x, b.y);

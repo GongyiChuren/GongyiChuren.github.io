@@ -122,6 +122,8 @@
 
         const maxDist = 208;
         const breakRadius = 96;
+        const repelDist = 26;
+        const minSpeed = 0.09;
         let uiRect: { left: number; right: number; top: number; bottom: number } | null = null;
 
         const rand = (min: number, max: number) => Math.random() * (max - min) + min;
@@ -250,8 +252,14 @@
             cursorHalo.style.top = `${haloY}px`;
           }
 
+          const t = performance.now() * 0.00038;
+
           for (let i = 0; i < nodes.length; i++) {
             const n = nodes[i];
+
+            // 轻流场，避免局部停滞
+            n.vx += Math.sin(t + n.y * 0.012) * 0.005;
+            n.vy += Math.cos(t + n.x * 0.012) * 0.005;
 
             if (isInUi(n.x, n.y)) {
               const centerX = width * 0.5;
@@ -279,6 +287,9 @@
             if (speed > 0.55) {
               n.vx = (n.vx / speed) * 0.55;
               n.vy = (n.vy / speed) * 0.55;
+            } else if (speed < minSpeed) {
+              n.vx += rand(-0.035, 0.035);
+              n.vy += rand(-0.035, 0.035);
             }
 
             n.x += n.vx;
@@ -289,6 +300,28 @@
 
             n.x = Math.max(0, Math.min(width, n.x));
             n.y = Math.max(0, Math.min(height, n.y));
+          }
+
+          // 近邻排斥，防止节点聚成一坨
+          for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+              const a = nodes[i];
+              const b = nodes[j];
+              const dx = b.x - a.x;
+              const dy = b.y - a.y;
+              const d2 = dx * dx + dy * dy;
+              if (d2 === 0 || d2 > repelDist * repelDist) continue;
+
+              const d = Math.sqrt(d2);
+              const force = (1 - d / repelDist) * 0.014;
+              const nx = dx / d;
+              const ny = dy / d;
+
+              a.vx -= nx * force;
+              a.vy -= ny * force;
+              b.vx += nx * force;
+              b.vy += ny * force;
+            }
           }
 
           for (let i = 0; i < nodes.length; i++) {
@@ -306,7 +339,8 @@
               }
 
               const d = Math.sqrt(d2);
-              const alpha = Math.pow(1 - d / maxDist, 1.25) * 0.62;
+              const nearFactor = d < 18 ? d / 18 : 1;
+              const alpha = Math.pow(1 - d / maxDist, 1.25) * 0.62 * nearFactor;
               ctx.strokeStyle = `hsla(${hue}, 88%, 66%, ${alpha.toFixed(3)})`;
               ctx.lineWidth = 1.35;
               ctx.beginPath();

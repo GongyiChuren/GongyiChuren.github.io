@@ -974,50 +974,96 @@ widget-layout.card-base:hover {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 2;
+  z-index: 34;
   --grid-x: 50%;
   --grid-y: 50%;
   --grid-intensity: 0.24;
-  --grid-size: 36px;
+  --grid-size: 34px;
+  --grid-rot: 0deg;
+  --grid-bloom: 0.35;
+  --grid-scan: 0;
   background:
     radial-gradient(
-      480px circle at var(--grid-x) var(--grid-y),
-      color-mix(in srgb, var(--primary) 14%, transparent) 0%,
-      color-mix(in srgb, var(--primary) 7%, transparent) 26%,
-      transparent 66%
+      620px circle at var(--grid-x) var(--grid-y),
+      color-mix(in srgb, var(--primary) calc(var(--grid-bloom) * 30%), transparent) 0%,
+      color-mix(in srgb, var(--primary) calc(var(--grid-bloom) * 14%), transparent) 24%,
+      transparent 64%
+    ),
+    repeating-conic-gradient(
+      from var(--grid-rot) at var(--grid-x) var(--grid-y),
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 22%), transparent) 0deg,
+      transparent 8deg,
+      transparent 26deg,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 14%), transparent) 30deg,
+      transparent 38deg,
+      transparent 60deg
     ),
     linear-gradient(
       180deg,
       color-mix(in srgb, var(--card-bg) 2%, transparent) 0%,
-      transparent 32%,
-      color-mix(in srgb, var(--primary) 2%, transparent) 100%
+      transparent 35%,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 5%), transparent) 100%
     ),
     linear-gradient(
       to right,
-      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 10%), transparent) 1px,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 14%), transparent) 1px,
       transparent 1px
     ),
     linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 10%), transparent) 1px,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 14%), transparent) 1px,
       transparent 1px
+    ),
+    linear-gradient(
+      105deg,
+      transparent 35%,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 22%), transparent) calc(46% + var(--grid-scan) * 1%),
+      transparent calc(56% + var(--grid-scan) * 1%)
     );
   background-size:
     100% 100%,
     100% 100%,
+    100% 100%,
     var(--grid-size) var(--grid-size),
-    var(--grid-size) var(--grid-size);
-  opacity: 0.72;
-  transition: opacity 0.25s ease;
+    var(--grid-size) var(--grid-size),
+    100% 100%;
+  opacity: 0.9;
+  mix-blend-mode: soft-light;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+  filter: saturate(1.12);
+}
+
+#bg-grid-overlay::before,
+#bg-grid-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+#bg-grid-overlay::before {
+  background:
+    radial-gradient(380px circle at var(--grid-x) var(--grid-y), color-mix(in srgb, var(--primary) 20%, transparent) 0%, transparent 72%),
+    radial-gradient(220px circle at calc(var(--grid-x) + 9%) calc(var(--grid-y) - 8%), color-mix(in srgb, var(--primary) 14%, transparent) 0%, transparent 82%);
+  opacity: 0.62;
+  filter: blur(8px);
+}
+
+#bg-grid-overlay::after {
+  background: radial-gradient(ellipse at var(--grid-x) var(--grid-y), color-mix(in srgb, var(--primary) 15%, transparent) 0%, transparent 58%);
+  mix-blend-mode: screen;
+  opacity: 0.28;
 }
 
 :root.dark #bg-grid-overlay {
-  opacity: 0.9;
+  opacity: 1;
+  mix-blend-mode: screen;
+  filter: saturate(1.2);
 }
 
 @media (max-width: 768px) {
   #bg-grid-overlay {
-    --grid-size: 44px;
-    opacity: 0.5;
+    --grid-size: 40px;
+    opacity: 0.58;
   }
 }

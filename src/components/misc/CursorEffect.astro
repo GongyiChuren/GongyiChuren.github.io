@@ -124,28 +124,50 @@
         const breakRadius = 96;
         const repelDist = 26;
         const minSpeed = 0.09;
-        let uiRect: { left: number; right: number; top: number; bottom: number } | null = null;
+        let uiRects: Array<{ left: number; right: number; top: number; bottom: number }> = [];
 
         const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
-        function updateUiRect() {
-          const mainGrid = document.getElementById("main-grid");
-          if (!mainGrid) {
-            uiRect = null;
-            return;
-          }
-          const r = mainGrid.getBoundingClientRect();
-          uiRect = {
-            left: r.left - 40,
-            right: r.right + 40,
-            top: Math.max(0, r.top - 24),
-            bottom: Math.min(window.innerHeight, r.bottom + 24),
-          };
+        function updateUiRects() {
+          const selectors = [
+            "#top-row",
+            "#navbar-wrapper",
+            "#left-sidebar .card-base",
+            "#right-sidebar .card-base",
+            "#post-list-container .card-base",
+            "#post-container .card-base",
+            "#toc-wrapper",
+            "footer",
+            ".float-panel",
+          ];
+
+          const elements = document.querySelectorAll<HTMLElement>(selectors.join(","));
+          const rects: Array<{ left: number; right: number; top: number; bottom: number }> = [];
+
+          elements.forEach((element) => {
+            const r = element.getBoundingClientRect();
+            if (r.width < 8 || r.height < 8) return;
+            if (r.bottom < 0 || r.top > window.innerHeight) return;
+            rects.push({
+              left: Math.max(0, r.left - 12),
+              right: Math.min(window.innerWidth, r.right + 12),
+              top: Math.max(0, r.top - 10),
+              bottom: Math.min(window.innerHeight, r.bottom + 10),
+            });
+          });
+
+          uiRects = rects;
         }
 
         function isInUi(x: number, y: number) {
-          if (!uiRect) return false;
-          return x >= uiRect.left && x <= uiRect.right && y >= uiRect.top && y <= uiRect.bottom;
+          if (uiRects.length === 0) return false;
+          for (let i = 0; i < uiRects.length; i++) {
+            const r = uiRects[i];
+            if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+              return true;
+            }
+          }
+          return false;
         }
 
         function samplePointPreferOutside() {
@@ -153,21 +175,21 @@
           let point: { x: number; y: number };
 
           // 下方区域更密
-          if (p < 0.46) {
-            point = { x: rand(0, width), y: rand(height * 0.64, height) };
+          if (p < 0.58) {
+            point = { x: rand(0, width), y: rand(height * 0.68, height) };
           // 左右两侧更密
           } else if (p < 0.84) {
             if (Math.random() < 0.5) {
-              point = { x: rand(0, width * 0.2), y: rand(height * 0.2, height) };
+              point = { x: rand(0, width * 0.18), y: rand(height * 0.14, height) };
             } else {
-              point = { x: rand(width * 0.8, width), y: rand(height * 0.2, height) };
+              point = { x: rand(width * 0.82, width), y: rand(height * 0.14, height) };
             }
           // 顶部保留少量
           } else {
-            point = { x: rand(0, width), y: rand(0, height * 0.28) };
+            point = { x: rand(0, width), y: rand(0, height * 0.22) };
           }
 
-          if (!uiRect || !isInUi(point.x, point.y)) {
+          if (!isInUi(point.x, point.y)) {
             return point;
           }
 
@@ -187,7 +209,7 @@
           canvas.style.height = `${height}px`;
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-          updateUiRect();
+          updateUiRects();
 
           const targetCount = Math.max(56, Math.min(198, Math.floor((width * height) / 14500)));
           if (nodes.length < targetCount) {
@@ -237,7 +259,7 @@
 
           frameCount += 1;
           if (frameCount % 24 === 0) {
-            updateUiRect();
+            updateUiRects();
           }
 
           ctx.clearRect(0, 0, width, height);
@@ -271,13 +293,19 @@
               n.vy += (pushY / len) * 0.03;
             }
 
-            // 轻微引导到下方与两侧，保留顶部少量节点
-            if (n.y < height * 0.22 && Math.random() < 0.35) {
-              n.vy += 0.01;
+            // 底部增强：上方节点缓慢下沉
+            if (n.y < height * 0.8) {
+              n.vy += 0.004;
             }
-            if (n.x > width * 0.3 && n.x < width * 0.7 && n.y > height * 0.28 && Math.random() < 0.25) {
-              n.vx += n.x < width * 0.5 ? -0.012 : 0.012;
-              n.vy += 0.006;
+
+            // 两侧分散：避免侧边挤成一坨
+            if (n.x < width * 0.2 || n.x > width * 0.8) {
+              n.vy += rand(-0.016, 0.016);
+            }
+
+            // 顶部保留少量，不让全部下坠
+            if (n.y < height * 0.16 && Math.random() < 0.18) {
+              n.vy -= 0.005;
             }
 
             n.vx += rand(-0.012, 0.012);
@@ -295,8 +323,22 @@
             n.x += n.vx;
             n.y += n.vy;
 
-            if (n.x < 0 || n.x > width) n.vx *= -1;
-            if (n.y < 0 || n.y > height) n.vy *= -1;
+            if (n.x < 0) {
+              n.x = 0;
+              n.vx = Math.abs(n.vx) + rand(0.04, 0.1);
+            }
+            if (n.x > width) {
+              n.x = width;
+              n.vx = -Math.abs(n.vx) - rand(0.04, 0.1);
+            }
+            if (n.y < 0) {
+              n.y = 0;
+              n.vy = Math.abs(n.vy) + rand(0.03, 0.08);
+            }
+            if (n.y > height) {
+              n.y = height;
+              n.vy = -Math.abs(n.vy) - rand(0.03, 0.08);
+            }
 
             n.x = Math.max(0, Math.min(width, n.x));
             n.y = Math.max(0, Math.min(height, n.y));
@@ -313,7 +355,7 @@
               if (d2 === 0 || d2 > repelDist * repelDist) continue;
 
               const d = Math.sqrt(d2);
-              const force = (1 - d / repelDist) * 0.014;
+              const force = (1 - d / repelDist) * 0.019;
               const nx = dx / d;
               const ny = dy / d;
 

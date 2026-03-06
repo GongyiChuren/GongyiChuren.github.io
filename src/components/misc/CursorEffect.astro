@@ -12,7 +12,7 @@
     inset: 0;
     pointer-events: none;
     z-index: 20;
-    opacity: 0.88;
+    opacity: 0.95;
   }
 
   #cursor-core,
@@ -118,11 +118,44 @@
         let height = 0;
         let lastTrailAt = 0;
         let running = true;
+        let frameCount = 0;
 
-        const maxDist = 148;
-        const breakRadius = 86;
+        const maxDist = 192;
+        const breakRadius = 96;
+        let uiRect: { left: number; right: number; top: number; bottom: number } | null = null;
 
         const rand = (min: number, max: number) => Math.random() * (max - min) + min;
+
+        function updateUiRect() {
+          const mainGrid = document.getElementById("main-grid");
+          if (!mainGrid) {
+            uiRect = null;
+            return;
+          }
+          const r = mainGrid.getBoundingClientRect();
+          uiRect = {
+            left: r.left - 40,
+            right: r.right + 40,
+            top: Math.max(0, r.top - 24),
+            bottom: Math.min(window.innerHeight, r.bottom + 24),
+          };
+        }
+
+        function isInUi(x: number, y: number) {
+          if (!uiRect) return false;
+          return x >= uiRect.left && x <= uiRect.right && y >= uiRect.top && y <= uiRect.bottom;
+        }
+
+        function samplePointPreferOutside() {
+          if (!uiRect || Math.random() < 0.38) {
+            return { x: rand(0, width), y: rand(0, height) };
+          }
+          for (let i = 0; i < 8; i++) {
+            const point = { x: rand(0, width), y: rand(0, height) };
+            if (!isInUi(point.x, point.y)) return point;
+          }
+          return { x: rand(0, width), y: rand(0, height) };
+        }
 
         function resize() {
           width = window.innerWidth;
@@ -133,15 +166,18 @@
           canvas.style.height = `${height}px`;
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-          const targetCount = Math.max(24, Math.min(90, Math.floor((width * height) / 26000)));
+          updateUiRect();
+
+          const targetCount = Math.max(44, Math.min(165, Math.floor((width * height) / 17000)));
           if (nodes.length < targetCount) {
             for (let i = nodes.length; i < targetCount; i++) {
+              const p = samplePointPreferOutside();
               nodes.push({
-                x: rand(0, width),
-                y: rand(0, height),
-                vx: rand(-0.35, 0.35),
-                vy: rand(-0.35, 0.35),
-                r: rand(1.1, 2.3),
+                x: p.x,
+                y: p.y,
+                vx: rand(-0.4, 0.4),
+                vy: rand(-0.4, 0.4),
+                r: rand(1.4, 2.9),
               });
             }
           } else {
@@ -178,6 +214,11 @@
         function animate() {
           if (!running) return;
 
+          frameCount += 1;
+          if (frameCount % 24 === 0) {
+            updateUiRect();
+          }
+
           ctx.clearRect(0, 0, width, height);
           const hue = Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue("--hue").trim(), 10) || 205;
 
@@ -192,6 +233,16 @@
 
           for (let i = 0; i < nodes.length; i++) {
             const n = nodes[i];
+
+            if (isInUi(n.x, n.y)) {
+              const centerX = width * 0.5;
+              const centerY = height * 0.5;
+              const pushX = n.x - centerX || rand(-1, 1);
+              const pushY = n.y - centerY || rand(-1, 1);
+              const len = Math.hypot(pushX, pushY) || 1;
+              n.vx += (pushX / len) * 0.03;
+              n.vy += (pushY / len) * 0.03;
+            }
 
             n.vx += rand(-0.012, 0.012);
             n.vy += rand(-0.012, 0.012);
@@ -227,9 +278,9 @@
               }
 
               const d = Math.sqrt(d2);
-              const alpha = Math.pow(1 - d / maxDist, 1.35) * 0.5;
+              const alpha = Math.pow(1 - d / maxDist, 1.25) * 0.62;
               ctx.strokeStyle = `hsla(${hue}, 88%, 66%, ${alpha.toFixed(3)})`;
-              ctx.lineWidth = 1;
+              ctx.lineWidth = 1.35;
               ctx.beginPath();
               ctx.moveTo(a.x, a.y);
               ctx.lineTo(b.x, b.y);
@@ -239,7 +290,7 @@
 
           for (let i = 0; i < nodes.length; i++) {
             const n = nodes[i];
-            ctx.fillStyle = `hsla(${hue}, 92%, 70%, 0.65)`;
+            ctx.fillStyle = `hsla(${hue}, 92%, 70%, 0.82)`;
             ctx.beginPath();
             ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
             ctx.fill();

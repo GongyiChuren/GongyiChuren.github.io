@@ -160,6 +160,7 @@
   const cursorDot = document.getElementById('cursor-dot');
   const cursorOutline = document.getElementById('cursor-outline');
   const cursorConeOrb = document.getElementById('cursor-cone-orb');
+  const bgGridOverlay = document.getElementById('bg-grid-overlay');
 
   if (!cursorRuntime.initialized && cursorDot && cursorOutline && cursorConeOrb) {
     cursorRuntime.initialized = true;
@@ -180,6 +181,10 @@
     let orbDriftY = 0;
     let prevMouseX = 0;
     let prevMouseY = 0;
+    let gridX = window.innerWidth * 0.5;
+    let gridY = window.innerHeight * 0.5;
+    let gridIntensity = 0.24;
+    let gridIntensityTarget = 0.24;
     let lastMoveAt = 0;
     let isOverComment = false;
     let commentTarget: Element | null = null;
@@ -249,6 +254,7 @@
       orbSpinBoost = Math.min(1.2, orbSpinBoost + speed * 0.04);
       orbDriftX = Math.max(-9, Math.min(9, orbDriftX + deltaX * 0.14));
       orbDriftY = Math.max(-9, Math.min(9, orbDriftY + deltaY * 0.14));
+      gridIntensityTarget = Math.min(0.62, 0.24 + speed * 0.045);
 
       if (commentTarget) {
         const now = performance.now();
@@ -281,11 +287,15 @@
       outlineY += (mouseY - outlineY) * 0.45;
       orbX += (mouseX - orbX) * 0.14;
       orbY += (mouseY - orbY) * 0.14;
+      gridX += (mouseX - gridX) * 0.09;
+      gridY += (mouseY - gridY) * 0.09;
       orbScale += (orbScaleTarget - orbScale) * 0.11;
       orbAlpha += (orbAlphaTarget - orbAlpha) * 0.08;
+      gridIntensity += (gridIntensityTarget - gridIntensity) * 0.08;
       orbSpinBoost *= 0.9;
       orbDriftX *= 0.84;
       orbDriftY *= 0.84;
+      gridIntensityTarget *= 0.96;
       const pulse = Math.sin(performance.now() * 0.003) * 0.014;
       orbRot = (orbRot + 0.09 + orbSpinBoost * 0.56) % 360;
 
@@ -297,6 +307,11 @@
       cursorConeOrb.style.setProperty('--orb-rot', `${orbRot}deg`);
       cursorConeOrb.style.setProperty('--orb-scale', `${(orbScale + pulse).toFixed(2)}`);
       cursorConeOrb.style.setProperty('--orb-alpha', orbAlpha.toFixed(2));
+      if (bgGridOverlay) {
+        bgGridOverlay.style.setProperty('--grid-x', `${gridX.toFixed(1)}px`);
+        bgGridOverlay.style.setProperty('--grid-y', `${gridY.toFixed(1)}px`);
+        bgGridOverlay.style.setProperty('--grid-intensity', gridIntensity.toFixed(3));
+      }
 
       if (isOverComment) {
         const now = performance.now();

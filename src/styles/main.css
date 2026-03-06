@@ -968,3 +968,56 @@ widget-layout.card-base:hover {
   55% { transform: translateX(120%); opacity: 0; }
   100% { transform: translateX(120%); opacity: 0; }
 }
+
+/* ====== 背景微纹理网格（联动鼠标） ====== */
+#bg-grid-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  --grid-x: 50%;
+  --grid-y: 50%;
+  --grid-intensity: 0.24;
+  --grid-size: 36px;
+  background:
+    radial-gradient(
+      480px circle at var(--grid-x) var(--grid-y),
+      color-mix(in srgb, var(--primary) 14%, transparent) 0%,
+      color-mix(in srgb, var(--primary) 7%, transparent) 26%,
+      transparent 66%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--card-bg) 2%, transparent) 0%,
+      transparent 32%,
+      color-mix(in srgb, var(--primary) 2%, transparent) 100%
+    ),
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 10%), transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--primary) calc(var(--grid-intensity) * 10%), transparent) 1px,
+      transparent 1px
+    );
+  background-size:
+    100% 100%,
+    100% 100%,
+    var(--grid-size) var(--grid-size),
+    var(--grid-size) var(--grid-size);
+  opacity: 0.72;
+  transition: opacity 0.25s ease;
+}
+
+:root.dark #bg-grid-overlay {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  #bg-grid-overlay {
+    --grid-size: 44px;
+    opacity: 0.5;
+  }
+}

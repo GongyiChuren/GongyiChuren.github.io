@@ -120,12 +120,10 @@
         let running = true;
         let frameCount = 0;
 
-        const maxDist = 196;
+        const maxDist = 188;
         const breakRadius = 96;
         const repelDist = 42;
         const minSpeed = 0.09;
-        const edgeFlashCycleMs = 9000;
-        const edgeFlashDurationMs = 240;
         const clusterCount = 8;
         const cursorForceRadius = 110;
         let uiRects: Array<{ left: number; right: number; top: number; bottom: number }> = [];
@@ -180,10 +178,10 @@
           let point: { x: number; y: number };
 
           // 下方区域更密
-          if (p < 0.52) {
+          if (p < 0.5) {
             point = { x: rand(0, width), y: rand(height * 0.68, height) };
           // 左右两侧更密
-          } else if (p < 0.78) {
+          } else if (p < 0.68) {
             if (Math.random() < 0.5) {
               point = { x: rand(0, width * 0.18), y: rand(height * 0.14, height) };
             } else {
@@ -191,7 +189,7 @@
             }
           // 顶部保留少量
           } else {
-            point = { x: rand(0, width), y: rand(0, height * 0.26) };
+            point = { x: rand(0, width), y: rand(0, height * 0.34) };
           }
 
           if (!isInUi(point.x, point.y)) {
@@ -205,15 +203,23 @@
           return point;
         }
 
+        function sampleAnchorPoint() {
+          for (let i = 0; i < 14; i++) {
+            const p = { x: rand(0, width), y: rand(0, height) };
+            if (!isInUi(p.x, p.y)) return p;
+          }
+          return { x: rand(0, width), y: rand(0, height) };
+        }
+
         function ensureAnchors() {
           if (anchors.length === 0) {
             for (let i = 0; i < clusterCount; i++) {
-              const p = samplePointPreferOutside();
+              const p = sampleAnchorPoint();
               anchors.push({
                 x: p.x,
                 y: p.y,
-                vx: rand(-0.22, 0.22),
-                vy: rand(-0.22, 0.22),
+                vx: rand(-0.16, 0.16),
+                vy: rand(-0.16, 0.16),
               });
             }
           } else if (anchors.length > clusterCount) {
@@ -286,12 +292,6 @@
 
           ctx.clearRect(0, 0, width, height);
           const hue = Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue("--hue").trim(), 10) || 205;
-          const nowMs = performance.now();
-          const flashPhase = nowMs % edgeFlashCycleMs;
-          const edgeFlash = flashPhase < edgeFlashDurationMs
-            ? Math.sin((flashPhase / edgeFlashDurationMs) * Math.PI) * 0.14
-            : 0;
-
           if (cursorCore && cursorHalo) {
             haloX += (cursor.x - haloX) * 0.24;
             haloY += (cursor.y - haloY) * 0.24;
@@ -340,8 +340,8 @@
                 nearest = a;
               }
             }
-            n.vx += (nearest.x - n.x) * 0.00058;
-            n.vy += (nearest.y - n.y) * 0.00058;
+            n.vx += (nearest.x - n.x) * 0.00042;
+            n.vy += (nearest.y - n.y) * 0.00042;
 
             if (isInUi(n.x, n.y)) {
               const centerX = width * 0.5;
@@ -349,8 +349,8 @@
               const pushX = n.x - centerX || rand(-1, 1);
               const pushY = n.y - centerY || rand(-1, 1);
               const len = Math.hypot(pushX, pushY) || 1;
-              n.vx += (pushX / len) * 0.03;
-              n.vy += (pushY / len) * 0.03;
+              n.vx += (pushX / len) * 0.018;
+              n.vy += (pushY / len) * 0.018;
             }
 
             // 鼠标互动（除断线外）：靠近时节点被推开并带一点旋涡感
@@ -465,11 +465,10 @@
               }
 
               const nearFactor = d < 18 ? d / 18 : 1;
-              const alpha = Math.pow(1 - d / maxDist, 1.25) * 0.62 * nearFactor;
+              const alpha = Math.pow(1 - d / maxDist, 1.2) * 0.26 * nearFactor;
               const edgeSubset = ((i * 73856093) ^ (j * 19349663)) & 1;
-              if (edgeFlash > 0.002 && edgeSubset === 0) {
-                const flashAlpha = alpha * edgeFlash;
-                ctx.strokeStyle = `hsla(${hue}, 88%, 70%, ${flashAlpha.toFixed(3)})`;
+              if (edgeSubset === 0) {
+                ctx.strokeStyle = `hsla(${hue}, 88%, 70%, ${alpha.toFixed(3)})`;
                 ctx.lineWidth = 0.45;
                 ctx.beginPath();
                 ctx.moveTo(a.x, a.y);

@@ -37,19 +37,19 @@
   }
 
   .cursor-cone-orb {
-    width: clamp(240px, 24vw, 420px);
-    height: clamp(240px, 24vw, 420px);
+    width: clamp(250px, 25vw, 440px);
+    height: clamp(250px, 25vw, 440px);
     z-index: 6;
     opacity: 0;
-    filter: blur(0.8px) saturate(1.1);
-    mix-blend-mode: soft-light;
+    filter: blur(0.6px) saturate(1.18);
+    mix-blend-mode: screen;
     --orb-rot: 0deg;
     --orb-scale: 1;
-    --orb-alpha: 0.24;
+    --orb-alpha: 0.3;
     transform: translate(-50%, -50%) scale(var(--orb-scale)) rotate(var(--orb-rot));
     transition: opacity 0.25s ease;
     background:
-      radial-gradient(circle at center, hsla(calc(var(--hue) + 10), 96%, 72%, 0.12) 0%, hsla(calc(var(--hue) + 10), 96%, 72%, 0.04) 36%, transparent 64%),
+      radial-gradient(circle at center, hsla(calc(var(--hue) + 8), 96%, 72%, 0.14) 0%, hsla(calc(var(--hue) + 8), 96%, 72%, 0.05) 36%, transparent 64%),
       conic-gradient(
         from 8deg,
         hsla(calc(var(--hue) + 2), 95%, 70%, 0) 0deg,
@@ -63,9 +63,18 @@
         hsla(calc(var(--hue) + 214), 95%, 74%, 0) 286deg,
         hsla(calc(var(--hue) + 274), 95%, 74%, var(--orb-alpha)) 324deg,
         hsla(calc(var(--hue) + 274), 95%, 74%, 0) 360deg
+      ),
+      repeating-conic-gradient(
+        from 20deg,
+        hsla(calc(var(--hue) + 20), 95%, 72%, 0) 0deg,
+        hsla(calc(var(--hue) + 20), 95%, 72%, 0) 10deg,
+        hsla(calc(var(--hue) + 20), 95%, 72%, calc(var(--orb-alpha) * 0.48)) 10deg,
+        hsla(calc(var(--hue) + 20), 95%, 72%, calc(var(--orb-alpha) * 0.48)) 14deg,
+        hsla(calc(var(--hue) + 20), 95%, 72%, 0) 14deg,
+        hsla(calc(var(--hue) + 20), 95%, 72%, 0) 30deg
       );
-    mask-image: radial-gradient(circle at center, black 0%, black 16%, rgba(0, 0, 0, 0.5) 48%, transparent 82%);
-    -webkit-mask-image: radial-gradient(circle at center, black 0%, black 16%, rgba(0, 0, 0, 0.5) 48%, transparent 82%);
+    mask-image: radial-gradient(circle at center, black 0%, black 14%, rgba(0, 0, 0, 0.56) 50%, transparent 82%);
+    -webkit-mask-image: radial-gradient(circle at center, black 0%, black 14%, rgba(0, 0, 0, 0.56) 50%, transparent 82%);
   }
 
   .click-burst {
@@ -230,14 +239,14 @@
       mouseY = e.clientY;
       lastMoveAt = performance.now();
 
-      const speed = Math.min(7, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY));
+      const speed = Math.min(8, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY));
       const deltaX = mouseX - prevMouseX;
       const deltaY = mouseY - prevMouseY;
       prevMouseX = mouseX;
       prevMouseY = mouseY;
-      orbScaleTarget = 1 + speed * 0.008;
-      orbAlphaTarget = Math.min(0.38, 0.2 + speed * 0.018);
-      orbSpinBoost = Math.min(1.0, orbSpinBoost + speed * 0.035);
+      orbScaleTarget = 1 + speed * 0.01;
+      orbAlphaTarget = Math.min(0.5, 0.24 + speed * 0.022);
+      orbSpinBoost = Math.min(1.2, orbSpinBoost + speed * 0.04);
       orbDriftX = Math.max(-9, Math.min(9, orbDriftX + deltaX * 0.14));
       orbDriftY = Math.max(-9, Math.min(9, orbDriftY + deltaY * 0.14));
 
@@ -270,14 +279,15 @@
     function animateOutline() {
       outlineX += (mouseX - outlineX) * 0.45;
       outlineY += (mouseY - outlineY) * 0.45;
-      orbX += (mouseX - orbX) * 0.13;
-      orbY += (mouseY - orbY) * 0.13;
+      orbX += (mouseX - orbX) * 0.14;
+      orbY += (mouseY - orbY) * 0.14;
       orbScale += (orbScaleTarget - orbScale) * 0.11;
       orbAlpha += (orbAlphaTarget - orbAlpha) * 0.08;
       orbSpinBoost *= 0.9;
       orbDriftX *= 0.84;
       orbDriftY *= 0.84;
-      orbRot = (orbRot + 0.08 + orbSpinBoost * 0.5) % 360;
+      const pulse = Math.sin(performance.now() * 0.003) * 0.014;
+      orbRot = (orbRot + 0.09 + orbSpinBoost * 0.56) % 360;
 
       cursorOutline.style.opacity = '1';
       cursorOutline.style.left = `${outlineX}px`;
@@ -285,7 +295,7 @@
       cursorConeOrb.style.left = `${orbX + orbDriftX}px`;
       cursorConeOrb.style.top = `${orbY + orbDriftY}px`;
       cursorConeOrb.style.setProperty('--orb-rot', `${orbRot}deg`);
-      cursorConeOrb.style.setProperty('--orb-scale', `${orbScale.toFixed(2)}`);
+      cursorConeOrb.style.setProperty('--orb-scale', `${(orbScale + pulse).toFixed(2)}`);
       cursorConeOrb.style.setProperty('--orb-alpha', orbAlpha.toFixed(2));
 
       if (isOverComment) {

@@ -14,98 +14,70 @@ draft: false
 image: /posts/images/8gb-vram-translation-blind-test/8gb-vram-translation-blind-test.webp
 ---
 
-很多佬友默认一个结论：本地跑大模型做翻译，没个 16GB+ 显存基本别聊。  
-这话不能说全错，但今天我们偏要拿最常见的配置抬杠一下：**RTX 5060 + 8GB VRAM + 满血功耗游戏本**，直接上四个开源模型硬测，看谁能在显存刀尖上稳住输出。😋
+很多佬友会觉得，本地跑模型做翻译，显存不到位就不用想。  
+我这次就拿一台普通笔记本，**RTX 5060 8GB**，把四个开源模型拉到同一套流程里盲测，看看在真实任务里到底能不能用。😋
 
-这次我不做“跑通就算赢”的轻量体验，而是按真实使用来：社区黑话、技术文档、回环翻译，全是你日常本地化会遇到的活。能扛住，才有资格进生产力名单；扛不住，就算参数再好看也白搭。
+这篇不是参数党比拼，而是偏实战：能不能稳定跑、能不能把话翻明白、能不能在 IT 语境里不掉链子。
 
-## 测试材料与文件清单
+## 部署与调参（8GB 重点）
 
-本次评测全部基于本地目录 `D:\1-汉化\本地模型测试`，核心文件如下：
-
-- `社区短句翻译样本数据集.xlsx`
-- `回环翻译样本数据集.txt`
-- `qwen3.5-9b-thinking社区短句翻译结果.docx`
-- `qwen3.5-9b-thinking回环翻译结果.docx`
-- `qwen3.5-9b社区短句翻译结果.docx`
-- `qwen3.5-9b回环翻译结果.docx`
-- `Gemma-2-9b社区短句翻译结果.docx`
-- `Gemma-2-9b回环翻译结果.docx`
-- `Gemma-3-4b社区短句翻译结果.docx`
-- `Gemma-3-4b回环翻译结果.docx`
-- `LMstudio的主界面截图.png`
-- `qwen3.5-9b模型参数.png`
-- `gemma2-9b模型参数.png`
-- `gemma3-4b模型参数.png`
-- `gemini作为评委的评价-1.png`
-- `gemini作为评委的评价-2.png`
-- `gemini作为评委的评价-3.png`
-- `gemini作为评委的评价-4.png`
-
-## 保姆级本地部署与极限调参（8GB 防爆显存版）
-
-我用的是 **LM Studio 前端 + llama.cpp 推理引擎**。这套组合的好处是：加载快、可视化直观、关键参数能精确控，适合在 8GB 显存里抠性能。
+推理前端用 **LM Studio**，底层是 **llama.cpp**。这套组合的好处是直观、稳定，参数调起来也比较省心。
 
 ![LM Studio 主界面截图](./images/lmstudio-main.png)
 
-先讲最重要的三个点：
+在 8GB 显存下，我建议直接抓住三件事：
 
-1. **9B 模型必须走 GGUF + Q4_K_M**  
-   这不是玄学，是显存预算学。9B 级别压到大约 5.5GB 后，系统开销和上下文缓存才有喘息空间。
+1. 9B 模型优先选 **GGUF 的 Q4_K_M**，体积和质量比较平衡。
+2. **GPU Offload 拉满**，让主要计算交给显卡。
+3. **Context Length 控在 2048 左右**，别把缓存顶爆，不然很容易掉速或 OOM。ლ(´ڡ`ლ)
 
-2. **GPU Offload 拉满**  
-   让 RTX 5060 尽量吃满计算层，别让 CPU 过多接盘。不然你会看到 token 速度像坐过山车，一会儿飞一会儿趴。
-
-3. **Context Length 控在 2048 左右**  
-   8GB 最怕的是 KV cache 膨胀。上下文开太大，轻则掉速，重则 OOM 直接退场。ლ(´ڡ`ლ)
-
-模型加载参数示意：
+模型参数截图放这里：
 
 ![Qwen 3.5 9B 参数示意](./images/qwen35-9b-params.png)
 ![Gemma-2 9B 参数示意](./images/gemma2-9b-params.png)
 ![Gemma-3 4B 参数示意](./images/gemma3-4b-params.png)
 
-## 测试维度说明
+## 测试维度
 
-### A 面：社区黑话与语境测试
+### A 面：社区黑话与语境
 
-这个维度就是看模型有没有“网感”。  
-比如样本里这类表达：`白嫖免费层`、`rug-pull`、`过墙节点`、`大户收割散户`，如果模型只会逐词直译，最后读起来会像机翻公告；如果能吃到语境，就会更接近社区真实说话方式。
+这一面主要看“网感”是否在线。像 `rug-pull`、`白嫖`、`节点` 这类表达，模型如果只会机械直译，读起来会很生硬；如果能理解语境，翻译就会自然很多。
 
-### B 面：IT 语境回环测试（英 -> 中 -> 英）
+### B 面：IT 语境回环（英 -> 中 -> 英）
 
-回环测试主要看抗信息损耗能力。  
-`回环翻译样本数据集.txt` 的原文本身就是完整工程语境（CI/CD、GitHub Actions、Docker、Cloudflare、SSL、Reverse Proxy）。回环后我们重点看三件事：
+这一面主要看信息损耗。样本里有 CI/CD、GitHub Actions、Docker、Cloudflare、SSL 等工程语境，重点观察术语是否跑偏、逻辑是否断裂、格式是否被破坏。
 
-- 术语有没有漂
-- 逻辑链有没有断
-- 代码/配置表达有没有被模型“自作聪明”改坏
+## 结果展示
 
-## 评测结果
-
-先放综合评分与显存消耗榜单：
+综合评分与显存消耗：
 
 ![综合评分与显存消耗榜单](./images/score-board.png)
 
-然后是四个模型的详细评价截图：
+四个模型的详细评价截图：
 
 ![Qwen 3.5 9B Thinking 详细评价](./images/model-review-1.png)
 ![Qwen 3.5 9B 标准版详细评价](./images/model-review-2.png)
 ![Gemma-2 9B 详细评价](./images/model-review-3.png)
 ![Gemma-3 4B 详细评价](./images/model-review-4.png)
 
-## 盲测后的实战结论（不报分版）
+## 结论与本地化建议
 
-如果你问我这轮最硬的结论是什么：**8GB 不是不能打，而是必须会调。**
-
-把量化选型、offload 和上下文这三件事拧对之后，8GB 机器在本地翻译这条线上完全能进入“可长期使用”的区间。  
-当然，它依然不是无限火力平台，尤其是连续长文和多轮复杂推理场景，还是要讲策略，别硬刚参数上限。
-
-另外，盲测越做越能体会一句老话：**没有绝对完美的模型，只有最适合你当前任务的工具。**  
-有的更懂社区语境，有的更稳技术语料，有的更省显存更适合长期后台挂着跑。选型不是信仰问题，是任务匹配问题。
+这轮测下来，一个最实际的结论是：8GB 平台完全可以干活，但前提是参数别乱开。  
+没有绝对完美的模型，只有更适合当前任务的工具。选型的时候，优先看你的文本类型和稳定性需求，而不是只看模型名气。
 
 ---
 
 署名：**Gongyi_Chu**
 
-你也可以在评论区聊聊你的本地部署参数，或者分享你做代码脱敏/语料脱敏翻译时踩过的坑，互相抄作业更快进化。🤝
+如果你也在本地跑翻译，欢迎评论区分享你的部署经验和代码脱敏思路，大家互相省时间，佬友一起进化。
+
+## 附件下载（DOCX）
+
+- [Qwen 3.5 9B Thinking - 社区短句翻译结果](/posts/files/8gb-translation-test/qwen35-9b-thinking-community.docx)
+- [Qwen 3.5 9B Thinking - 回环翻译结果](/posts/files/8gb-translation-test/qwen35-9b-thinking-roundtrip.docx)
+- [Qwen 3.5 9B 标准版 - 社区短句翻译结果](/posts/files/8gb-translation-test/qwen35-9b-community.docx)
+- [Qwen 3.5 9B 标准版 - 回环翻译结果](/posts/files/8gb-translation-test/qwen35-9b-roundtrip.docx)
+- [Gemma-2 9B - 社区短句翻译结果](/posts/files/8gb-translation-test/gemma2-9b-community.docx)
+- [Gemma-2 9B - 回环翻译结果](/posts/files/8gb-translation-test/gemma2-9b-roundtrip.docx)
+- [Gemma-3 4B - 社区短句翻译结果](/posts/files/8gb-translation-test/gemma3-4b-community.docx)
+- [Gemma-3 4B - 回环翻译结果](/posts/files/8gb-translation-test/gemma3-4b-roundtrip.docx)

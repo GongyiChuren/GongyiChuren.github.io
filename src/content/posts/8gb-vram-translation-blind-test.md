@@ -14,8 +14,8 @@ draft: false
 image: /posts/images/8gb-vram-translation-blind-test/8gb-vram-translation-blind-test.webp
 ---
 
-环境：**NVIDIA GeForce RTX 5060 Laptop GPU**
-任务：把四个开源模型拉到同一套流程里盲测，看看在真实任务里到底能不能用：能不能稳定跑、能不能把话翻明白、能不能在计算机 语境里不掉链子。😋
+环境：**NVIDIA GeForce RTX 5060 Laptop GPU** <br>任务：把四个开源模型拉到同一套流程里盲测，看看在真实任务里到底能不能用：能不能稳定跑、能不能把话翻明白、能不能在社区语境里不掉链子。😋
+测试模型：Qwen 3.5 9B (Thinking)，Qwen 3.5 9B (标准版)，Gemma-2 9B，Gemma-3 4B
 
 ## 部署与调参
 
@@ -23,7 +23,9 @@ image: /posts/images/8gb-vram-translation-blind-test/8gb-vram-translation-blind-
 
 部署步骤：在 LM Studio 下载对应 模型 文件，点 `Load Model` 后按高级参数调好再启动。
 
-<img src="./images/lmstudio-main.png" alt="LM Studio 主界面截图" width="760" />
+![LMstudio的主界面截图](./images/lmstudio-main.png)
+
+模型参数：
 
 1. **GPU Offload 都拉到高位**：Qwen 3.5 9B 是 `32`，Gemma-2 9B 是 `42`，Gemma-3 4B 是 `34`。核心目的只有一个：尽量把可卸载层压到 GPU 上，减少 CPU/内存来回搬运。
 2. **Context 的悲欢不尽相同**：图里 Qwen 是 `20000`、Gemma-2 是 `2174`、Gemma-3 是 `10000`。这几个值我会区分“测试上限”和“日常工作位”来用：日常翻译任务我仍然建议把 9B 控在 2048 左右，避免 KV Cache 把显存吃穿。
@@ -31,13 +33,11 @@ image: /posts/images/8gb-vram-translation-blind-test/8gb-vram-translation-blind-
 
 所以这部分调参的本质不是把滑条拉满，而是把模型体量、上下文和缓存位置对齐：先保证稳定连续出字，不会生成失败。
 
-模型参数：
+![qwen3.5-9b模型参数](./images/qwen35-9b-params.png)
 
-| Qwen 3.5 9B 参数示意 | Gemma-2 9B 参数示意 |
-| --- | --- |
-| ![Qwen 3.5 9B 参数示意](./images/qwen35-9b-params.png) | ![Gemma-2 9B 参数示意](./images/gemma2-9b-params.png) |
+![gemma2-9b模型参数](./images/gemma2-9b-params.png)
 
-<img src="./images/gemma3-4b-params.png" alt="Gemma-3 4B 参数示意" width="760" />
+![gemma3-4b模型参数](./images/gemma3-4b-params.png)
 
 ## 测试维度（数据集由gemini生成）
 
@@ -62,36 +62,17 @@ image: /posts/images/8gb-vram-translation-blind-test/8gb-vram-translation-blind-
 
 ## 结果展示（gemini统一评分标准评价，具体的翻译结果见附件）
 
-测试在测什么：
+模型的详细评价：
 
-<img src="./images/score-board.png" alt="哈基米的评论1" width="760" />
-
-四个模型的详细评价：
-
-| 评价 1 | 评价 2 |
-| --- | --- |
-| ![哈基米的评价2](./images/model-review-1.png) | ![哈基米的评价3](./images/model-review-2.png) |
-
-| 评价 3 | 评价 4 |
-| --- | --- |
-| ![哈基米的评价4](./images/model-review-3.png) | ![哈基米的评价5](./images/model-review-4.png) |
+![gemini作为评委的评价-1](./images/model-review-1.png)
+![gemini作为评委的评价-2](./images/model-review-2.png)
+![gemini作为评委的评价-3](./images/model-review-3.png)
+![gemini作为评委的评价-4](./images/model-review-4.png)
 
 ## 结论与本地化建议
 
-受限于 8GB 显存的物理墙，本次仅浅浅使用了量化版本的部分实力，这意味着它们的满血实力仍有释放空间。但在这种资源受限的‘神仙打架’局里，qwen和gemma这两款模型都交出了极其亮眼的答卷，完全有资格成为各位佬友日常本地部署的主力担当。😋
+受限于 8GB 显存的物理墙，本次仅浅浅使用了量化版本的部分实力，这意味着它们的满血实力仍有释放空间。但在这种资源受限的‘神仙打架’局里，qwen和gemma都交出了极其亮眼的答卷，完全有资格成为各位佬友日常本地部署的主力担当。😋
 
+## 附件下载（翻译结果 + 数据集）
 
-
-## 附件下载（DOCX + 数据集）
-
-- [社区短句翻译样本数据集（XLSX）](/posts/files/8gb-translation-test/community-sentences-dataset.xlsx)
-- [回环翻译样本数据集（TXT）](/posts/files/8gb-translation-test/roundtrip-dataset.txt)
-
-- [Qwen 3.5 9B Thinking - 社区短句翻译结果](/posts/files/8gb-translation-test/qwen35-9b-thinking-community.docx)
-- [Qwen 3.5 9B Thinking - 回环翻译结果](/posts/files/8gb-translation-test/qwen35-9b-thinking-roundtrip.docx)
-- [Qwen 3.5 9B 标准版 - 社区短句翻译结果](/posts/files/8gb-translation-test/qwen35-9b-community.docx)
-- [Qwen 3.5 9B 标准版 - 回环翻译结果](/posts/files/8gb-translation-test/qwen35-9b-roundtrip.docx)
-- [Gemma-2 9B - 社区短句翻译结果](/posts/files/8gb-translation-test/gemma2-9b-community.docx)
-- [Gemma-2 9B - 回环翻译结果](/posts/files/8gb-translation-test/gemma2-9b-roundtrip.docx)
-- [Gemma-3 4B - 社区短句翻译结果](/posts/files/8gb-translation-test/gemma3-4b-community.docx)
-- [Gemma-3 4B - 回环翻译结果](/posts/files/8gb-translation-test/gemma3-4b-roundtrip.docx)
+[本地模型测试.zip](/posts/files/8gb-translation-test/local-model-test.zip)

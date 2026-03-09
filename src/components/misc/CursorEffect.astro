@@ -128,6 +128,7 @@
         let lastTrailAt = 0;
         let running = true;
         let frameCount = 0;
+        let targetNodeCount = 0;
 
         const maxDist = 188;
         const breakRadius = 96;
@@ -249,23 +250,9 @@
           updateUiRects();
           ensureAnchors();
 
-          const targetCount = Math.max(210, Math.min(725, Math.floor((width * height) / 4100)));
-          if (nodes.length < targetCount) {
-            for (let i = nodes.length; i < targetCount; i++) {
-              const p = samplePointPreferOutside();
-              nodes.push({
-                x: p.x,
-                y: p.y,
-                vx: rand(-0.4, 0.4),
-                vy: rand(-0.4, 0.4),
-                r: rand(0.9, 3.6),
-                cluster: i % clusterCount,
-                orbitR: rand(95, 190),
-                orbitPhase: rand(0, Math.PI * 2),
-              });
-            }
-          } else {
-            nodes.length = targetCount;
+          targetNodeCount = Math.max(210, Math.min(725, Math.floor((width * height) / 4100)));
+          if (nodes.length > targetNodeCount) {
+            nodes.length = targetNodeCount;
           }
 
           // 重平衡簇分配：保证每簇点数接近平均
@@ -277,6 +264,24 @@
             if (!Number.isFinite(nodes[i].orbitPhase)) {
               nodes[i].orbitPhase = rand(0, Math.PI * 2);
             }
+          }
+        }
+
+        function spawnNodesBatch(limit = 28) {
+          if (nodes.length >= targetNodeCount) return;
+          const end = Math.min(targetNodeCount, nodes.length + limit);
+          for (let i = nodes.length; i < end; i++) {
+            const p = samplePointPreferOutside();
+            nodes.push({
+              x: p.x,
+              y: p.y,
+              vx: rand(-0.4, 0.4),
+              vy: rand(-0.4, 0.4),
+              r: rand(0.9, 3.6),
+              cluster: i % clusterCount,
+              orbitR: rand(95, 190),
+              orbitPhase: rand(0, Math.PI * 2),
+            });
           }
         }
 
@@ -310,6 +315,7 @@
           if (!running) return;
 
           frameCount += 1;
+          spawnNodesBatch(cursor.active ? 18 : 34);
           if (frameCount % 90 === 0) {
             updateUiRects();
           }
@@ -546,14 +552,21 @@
           }
         };
 
-        resize();
-        window.addEventListener("resize", resize, { passive: true });
-        document.addEventListener("mousemove", onMove, { passive: true });
-        document.addEventListener("mouseleave", onLeave, { passive: true });
-        window.addEventListener("blur", onLeave, { passive: true });
-        document.addEventListener("visibilitychange", onVisibility, { passive: true });
+        const start = () => {
+          resize();
+          window.addEventListener("resize", resize, { passive: true });
+          document.addEventListener("mousemove", onMove, { passive: true });
+          document.addEventListener("mouseleave", onLeave, { passive: true });
+          window.addEventListener("blur", onLeave, { passive: true });
+          document.addEventListener("visibilitychange", onVisibility, { passive: true });
+          runtime.rafId = requestAnimationFrame(animate);
+        };
 
-        runtime.rafId = requestAnimationFrame(animate);
+        if ("requestIdleCallback" in window) {
+          (window as any).requestIdleCallback(start, { timeout: 300 });
+        } else {
+          requestAnimationFrame(() => requestAnimationFrame(start));
+        }
       }
     }
   }

@@ -11,7 +11,7 @@ tags:
   - "翻译评测"
 category: "AI评测"
 draft: false
-image: /posts/images/8gb-vram-translation-blind-test.webp
+image: /posts/images/8gb-vram-translation-blind-test/8gb-vram-translation-blind-test.webp
 ---
 
 很多佬友默认一个结论：本地跑大模型做翻译，没个 16GB+ 显存基本别聊。  
@@ -46,7 +46,7 @@ image: /posts/images/8gb-vram-translation-blind-test.webp
 
 我用的是 **LM Studio 前端 + llama.cpp 推理引擎**。这套组合的好处是：加载快、可视化直观、关键参数能精确控，适合在 8GB 显存里抠性能。
 
-![LM Studio 主界面截图](./images/LMstudio的主界面截图.png)
+![LM Studio 主界面截图](./images/lmstudio-main.png)
 
 先讲最重要的三个点：
 
@@ -61,9 +61,9 @@ image: /posts/images/8gb-vram-translation-blind-test.webp
 
 模型加载参数示意：
 
-![Qwen 3.5 9B 参数示意](./images/qwen3.5-9b模型参数.png)
-![Gemma-2 9B 参数示意](./images/gemma2-9b模型参数.png)
-![Gemma-3 4B 参数示意](./images/gemma3-4b模型参数.png)
+![Qwen 3.5 9B 参数示意](./images/qwen35-9b-params.png)
+![Gemma-2 9B 参数示意](./images/gemma2-9b-params.png)
+![Gemma-3 4B 参数示意](./images/gemma3-4b-params.png)
 
 ## 测试维度说明
 
@@ -85,14 +85,14 @@ image: /posts/images/8gb-vram-translation-blind-test.webp
 
 先放综合评分与显存消耗榜单：
 
-![综合评分与显存消耗榜单](./images/score_board.png)
+![综合评分与显存消耗榜单](./images/score-board.png)
 
 然后是四个模型的详细评价截图：
 
-![Qwen 3.5 9B Thinking 详细评价](./images/gemini作为评委的评价-1.png)
-![Qwen 3.5 9B 标准版详细评价](./images/gemini作为评委的评价-2.png)
-![Gemma-2 9B 详细评价](./images/gemini作为评委的评价-3.png)
-![Gemma-3 4B 详细评价](./images/gemini作为评委的评价-4.png)
+![Qwen 3.5 9B Thinking 详细评价](./images/model-review-1.png)
+![Qwen 3.5 9B 标准版详细评价](./images/model-review-2.png)
+![Gemma-2 9B 详细评价](./images/model-review-3.png)
+![Gemma-3 4B 详细评价](./images/model-review-4.png)
 
 ## 盲测后的实战结论（不报分版）
 

@@ -53,7 +53,7 @@
     box-shadow: 0 0 6px hsl(var(--hue), 78%, 62%);
     transform: translate(-50%, -50%);
     z-index: 10001;
-    animation: cursor-trail-fade 0.42s ease-out forwards;
+    animation: cursor-trail-fade 0.34s ease-out forwards;
   }
 
   @keyframes cursor-trail-fade {
@@ -129,8 +129,9 @@
         let running = true;
         let frameCount = 0;
         let targetNodeCount = 0;
+        let lastStepAt = 0;
 
-        const maxDist = 188;
+        const maxDist = 170;
         const breakRadius = 96;
         const repelDist = 42;
         const minSpeed = 0.09;
@@ -250,7 +251,7 @@
           updateUiRects();
           ensureAnchors();
 
-          targetNodeCount = Math.max(210, Math.min(725, Math.floor((width * height) / 4100)));
+          targetNodeCount = Math.max(170, Math.min(560, Math.floor((width * height) / 5200)));
           if (nodes.length > targetNodeCount) {
             nodes.length = targetNodeCount;
           }
@@ -300,7 +301,7 @@
         function emitTrail(x: number, y: number) {
           if (window.innerWidth <= 768) return;
           const now = performance.now();
-          if (now - lastTrailAt < 40) return;
+          if (now - lastTrailAt < 55) return;
           lastTrailAt = now;
 
           const dot = document.createElement("div");
@@ -314,8 +315,15 @@
         function animate() {
           if (!running) return;
 
+          const now = performance.now();
+          if (lastStepAt && now - lastStepAt < 24) {
+            runtime.rafId = requestAnimationFrame(animate);
+            return;
+          }
+          lastStepAt = now;
+
           frameCount += 1;
-          spawnNodesBatch(cursor.active ? 18 : 34);
+          spawnNodesBatch(cursor.active ? 12 : 24);
           if (frameCount % 90 === 0) {
             updateUiRects();
           }
@@ -496,8 +504,8 @@
 
                   const nearFactor = d < 18 ? d / 18 : 1;
                   const alpha = Math.pow(1 - d / maxDist, 1.2) * 0.26 * nearFactor;
-                  const edgeSubset = ((i * 73856093) ^ (j * 19349663)) & 1;
-                  if (edgeSubset === 0) {
+                  const edgeSubset = ((i * 73856093) ^ (j * 19349663)) & 7;
+                  if (edgeSubset < 3) {
                     ctx.strokeStyle = `hsla(${hue}, 88%, 70%, ${alpha.toFixed(3)})`;
                     ctx.lineWidth = 0.45;
                     ctx.beginPath();

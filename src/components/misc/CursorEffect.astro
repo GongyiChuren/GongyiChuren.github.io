@@ -3,8 +3,6 @@
 ---
 
 <canvas id="bg-graph-field" aria-hidden="true"></canvas>
-<div id="cursor-core" aria-hidden="true"></div>
-<div id="cursor-halo" aria-hidden="true"></div>
 
 <style is:global>
   #bg-graph-field {
@@ -15,76 +13,14 @@
     opacity: 0.95;
   }
 
-  #cursor-core,
-  #cursor-halo {
-    position: fixed;
-    left: 0;
-    top: 0;
-    pointer-events: none;
-    opacity: 0;
-    transform: translate(-50%, -50%);
-    transition: opacity 0.2s ease;
-    z-index: 10000;
-  }
-
-  #cursor-core {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: hsl(var(--hue), 84%, 64%);
-    box-shadow: 0 0 8px hsl(var(--hue), 84%, 64%);
-  }
-
-  #cursor-halo {
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    border: 1.5px solid hsl(var(--hue), 84%, 64%);
-    box-shadow: 0 0 14px color-mix(in srgb, var(--primary) 30%, transparent);
-  }
-
-  .cursor-trail-dot {
-    position: fixed;
-    pointer-events: none;
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: hsl(var(--hue), 78%, 62%);
-    box-shadow: 0 0 6px hsl(var(--hue), 78%, 62%);
-    transform: translate(-50%, -50%);
-    z-index: 10001;
-    animation: cursor-trail-fade 0.34s ease-out forwards;
-  }
-
-  @keyframes cursor-trail-fade {
-    from {
-      opacity: 0.42;
-      transform: translate(-50%, -50%) scale(1);
-    }
-    to {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.3);
-    }
-  }
-
   @media (max-width: 768px) {
     #bg-graph-field {
       opacity: 0.62;
-    }
-
-    #cursor-core,
-    #cursor-halo {
-      display: none;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     #bg-graph-field {
-      display: none;
-    }
-
-    #cursor-core,
-    #cursor-halo {
       display: none;
     }
   }
@@ -100,8 +36,6 @@
     runtime.initialized = true;
 
     const canvas = document.getElementById("bg-graph-field") as HTMLCanvasElement | null;
-    const cursorCore = document.getElementById("cursor-core") as HTMLDivElement | null;
-    const cursorHalo = document.getElementById("cursor-halo") as HTMLDivElement | null;
     if (!canvas) {
       runtime.initialized = false;
     } else {
@@ -111,8 +45,7 @@
       } else {
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const cursor = { x: 0, y: 0, active: false };
-        let haloX = 0;
-        let haloY = 0;
+        const ribbon: Array<{ x: number; y: number; t: number }> = [];
         const nodes: Array<{
           x: number;
           y: number;
@@ -125,7 +58,6 @@
         }> = [];
         let width = 0;
         let height = 0;
-        let lastTrailAt = 0;
         let running = true;
         let frameCount = 0;
         let targetNodeCount = 0;
@@ -298,20 +230,6 @@
           return Math.hypot(px - cx, py - cy);
         }
 
-        function emitTrail(x: number, y: number) {
-          if (window.innerWidth <= 768) return;
-          const now = performance.now();
-          if (now - lastTrailAt < 55) return;
-          lastTrailAt = now;
-
-          const dot = document.createElement("div");
-          dot.className = "cursor-trail-dot";
-          dot.style.left = `${x}px`;
-          dot.style.top = `${y}px`;
-          document.body.appendChild(dot);
-          dot.addEventListener("animationend", () => dot.remove());
-        }
-
         function animate() {
           if (!running) return;
 
@@ -330,14 +248,6 @@
 
           ctx.clearRect(0, 0, width, height);
           const hue = Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue("--hue").trim(), 10) || 205;
-          if (cursorCore && cursorHalo) {
-            haloX += (cursor.x - haloX) * 0.24;
-            haloY += (cursor.y - haloY) * 0.24;
-            cursorCore.style.left = `${cursor.x}px`;
-            cursorCore.style.top = `${cursor.y}px`;
-            cursorHalo.style.left = `${haloX}px`;
-            cursorHalo.style.top = `${haloY}px`;
-          }
 
           const t = performance.now() * 0.00038;
 
@@ -526,6 +436,28 @@
             ctx.fill();
           }
 
+          // 彩带跟随（轻量 Canvas，不创建 DOM）
+          const nowTrail = performance.now();
+          while (ribbon.length > 0 && nowTrail - ribbon[0].t > 420) {
+            ribbon.shift();
+          }
+          if (ribbon.length > 1) {
+            for (let i = 1; i < ribbon.length; i++) {
+              const p0 = ribbon[i - 1];
+              const p1 = ribbon[i];
+              const k = i / ribbon.length;
+              const alpha = (1 - k) * 0.38;
+              if (alpha < 0.01) continue;
+              ctx.strokeStyle = `hsla(${(hue + i * 3) % 360}, 95%, 70%, ${alpha.toFixed(3)})`;
+              ctx.lineWidth = 1.2 + (1 - k) * 5.2;
+              ctx.lineCap = "round";
+              ctx.beginPath();
+              ctx.moveTo(p0.x, p0.y);
+              ctx.lineTo(p1.x, p1.y);
+              ctx.stroke();
+            }
+          }
+
           runtime.rafId = requestAnimationFrame(animate);
         }
 
@@ -533,19 +465,13 @@
           cursor.x = e.clientX;
           cursor.y = e.clientY;
           cursor.active = true;
-          if (cursorCore && cursorHalo) {
-            cursorCore.style.opacity = "1";
-            cursorHalo.style.opacity = "1";
-          }
-          emitTrail(cursor.x, cursor.y);
+          ribbon.push({ x: cursor.x, y: cursor.y, t: performance.now() });
+          if (ribbon.length > 40) ribbon.shift();
         };
 
         const onLeave = () => {
           cursor.active = false;
-          if (cursorCore && cursorHalo) {
-            cursorCore.style.opacity = "0";
-            cursorHalo.style.opacity = "0";
-          }
+          ribbon.length = 0;
         };
 
         const onVisibility = () => {

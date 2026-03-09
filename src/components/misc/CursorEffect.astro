@@ -135,6 +135,7 @@
         const minSpeed = 0.09;
         const clusterCount = 8;
         const cursorForceRadius = 110;
+        const gridCellSize = maxDist;
         let uiRects: Array<{ left: number; right: number; top: number; bottom: number }> = [];
         const anchors: Array<{ x: number; y: number; vx: number; vy: number }> = [];
 
@@ -294,7 +295,7 @@
         function emitTrail(x: number, y: number) {
           if (window.innerWidth <= 768) return;
           const now = performance.now();
-          if (now - lastTrailAt < 26) return;
+          if (now - lastTrailAt < 40) return;
           lastTrailAt = now;
 
           const dot = document.createElement("div");
@@ -309,7 +310,7 @@
           if (!running) return;
 
           frameCount += 1;
-          if (frameCount % 24 === 0) {
+          if (frameCount % 90 === 0) {
             updateUiRects();
           }
 
@@ -429,66 +430,76 @@
             n.y = Math.max(0, Math.min(height, n.y));
           }
 
-          // 近邻排斥，防止节点聚成一坨
+          // 空间网格加速邻域计算（替代 O(n^2)）
+          const grid = new Map<string, number[]>();
           for (let i = 0; i < nodes.length; i++) {
-            for (let j = i + 1; j < nodes.length; j++) {
-              const a = nodes[i];
-              const b = nodes[j];
-              const dx = b.x - a.x;
-              const dy = b.y - a.y;
-              const d2 = dx * dx + dy * dy;
-              if (d2 === 0 || d2 > repelDist * repelDist) continue;
-
-              const d = Math.sqrt(d2);
-              const force = (1 - d / repelDist) * 0.027;
-              const nx = dx / d;
-              const ny = dy / d;
-
-              a.vx -= nx * force;
-              a.vy -= ny * force;
-              b.vx += nx * force;
-              b.vy += ny * force;
-            }
+            const n = nodes[i];
+            const gx = Math.floor(n.x / gridCellSize);
+            const gy = Math.floor(n.y / gridCellSize);
+            const key = `${gx},${gy}`;
+            const bucket = grid.get(key);
+            if (bucket) bucket.push(i);
+            else grid.set(key, [i]);
           }
 
           for (let i = 0; i < nodes.length; i++) {
-            for (let j = i + 1; j < nodes.length; j++) {
-              const a = nodes[i];
-              const b = nodes[j];
-              const dx = b.x - a.x;
-              const dy = b.y - a.y;
-              const d2 = dx * dx + dy * dy;
-              if (d2 > maxDist * maxDist) continue;
+            const a = nodes[i];
+            const gx = Math.floor(a.x / gridCellSize);
+            const gy = Math.floor(a.y / gridCellSize);
 
-              if (cursor.active) {
-                const dseg = distToSegment(cursor.x, cursor.y, a.x, a.y, b.x, b.y);
-                if (dseg < breakRadius) continue;
-              }
+            for (let ox = -1; ox <= 1; ox++) {
+              for (let oy = -1; oy <= 1; oy++) {
+                const key = `${gx + ox},${gy + oy}`;
+                const bucket = grid.get(key);
+                if (!bucket) continue;
 
-              const d = Math.sqrt(d2);
+                for (let bi = 0; bi < bucket.length; bi++) {
+                  const j = bucket[bi];
+                  if (j <= i) continue;
+                  const b = nodes[j];
+                  const dx = b.x - a.x;
+                  const dy = b.y - a.y;
+                  const d2 = dx * dx + dy * dy;
+                  if (d2 > maxDist * maxDist || d2 === 0) continue;
 
-              // 轻微连线弹簧：运动规则依赖“线”，即使线不可见也成立
-              if (d > 0) {
-                const preferredDist = 118;
-                const spring = ((d - preferredDist) / preferredDist) * 0.001;
-                const nx = dx / d;
-                const ny = dy / d;
-                a.vx += nx * spring;
-                a.vy += ny * spring;
-                b.vx -= nx * spring;
-                b.vy -= ny * spring;
-              }
+                  const d = Math.sqrt(d2);
+                  const nx = dx / d;
+                  const ny = dy / d;
 
-              const nearFactor = d < 18 ? d / 18 : 1;
-              const alpha = Math.pow(1 - d / maxDist, 1.2) * 0.26 * nearFactor;
-              const edgeSubset = ((i * 73856093) ^ (j * 19349663)) & 1;
-              if (edgeSubset === 0) {
-                ctx.strokeStyle = `hsla(${hue}, 88%, 70%, ${alpha.toFixed(3)})`;
-                ctx.lineWidth = 0.45;
-                ctx.beginPath();
-                ctx.moveTo(a.x, a.y);
-                ctx.lineTo(b.x, b.y);
-                ctx.stroke();
+                  // 近邻排斥
+                  if (d < repelDist) {
+                    const force = (1 - d / repelDist) * 0.027;
+                    a.vx -= nx * force;
+                    a.vy -= ny * force;
+                    b.vx += nx * force;
+                    b.vy += ny * force;
+                  }
+
+                  // 连线弹簧（运动规则依赖线）
+                  const preferredDist = 118;
+                  const spring = ((d - preferredDist) / preferredDist) * 0.001;
+                  a.vx += nx * spring;
+                  a.vy += ny * spring;
+                  b.vx -= nx * spring;
+                  b.vy -= ny * spring;
+
+                  if (cursor.active) {
+                    const dseg = distToSegment(cursor.x, cursor.y, a.x, a.y, b.x, b.y);
+                    if (dseg < breakRadius) continue;
+                  }
+
+                  const nearFactor = d < 18 ? d / 18 : 1;
+                  const alpha = Math.pow(1 - d / maxDist, 1.2) * 0.26 * nearFactor;
+                  const edgeSubset = ((i * 73856093) ^ (j * 19349663)) & 1;
+                  if (edgeSubset === 0) {
+                    ctx.strokeStyle = `hsla(${hue}, 88%, 70%, ${alpha.toFixed(3)})`;
+                    ctx.lineWidth = 0.45;
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.stroke();
+                  }
+                }
               }
             }
           }

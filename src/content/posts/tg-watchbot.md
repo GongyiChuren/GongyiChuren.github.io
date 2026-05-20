@@ -38,7 +38,7 @@ https://github.com/GongyiChuren/tg-watchbot
 ## 主要功能
 
 - 普通用户私聊 Bot，消息会转发给管理员
-- 管理员可以直接回复用户，也可以主动发文字 / 图片
+- 管理员可以直接回复用户，也可以主动发**文字 / 图片**
 - 支持封禁、解封、备注、查看用户信息
 - 支持 RSS / Atom 监控
 - 支持网页 CSS selector 抓取

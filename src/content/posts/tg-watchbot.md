@@ -119,6 +119,8 @@ http://127.0.0.1:8765
 
 基本流程是：先复制 `.env.example` 和 `config.example.yaml`，前台运行 `./.venv/bin/python app.py` 打开面板，把设置填完整并保存；确认没问题后再启用 systemd。
 
+如果想从公网访问面板，推荐用 Cloudflare Tunnel + Zero Trust Access。Tunnel 的服务地址填 `http://127.0.0.1:8765`，再在 Access 里限制只允许自己的邮箱登录。这样不需要开放服务器端口，也不用把面板监听改成 `0.0.0.0`。
+
 启用后查看日志：
 
 ```bash

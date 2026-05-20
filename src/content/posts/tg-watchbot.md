@@ -51,9 +51,11 @@ https://github.com/GongyiChuren/tg-watchbot
 
 ## 展示
 
-![tg-watchbot 管理面板](https://GongyiChuren.github.io/picx-images-hosting/cf59034b-300b-4a0f-b3ab-535e827a2204.7zr28ugzbf.webp)
+![tg-watchbot 管理面板](https://pic.gongyichuren.de/file/1779287173835_8521cab29a9635743a603582ceb7ba02.png)
 
-![tg-watchbot 推送示例](https://GongyiChuren.github.io/picx-images-hosting/image.3ns91batmc.webp)
+![tg-watchbot 推送示例](https://pic.gongyichuren.de/file/1779287170665_17b7c8b4040d6334ea62a108d08db644.png)
+
+![tg-watchbot 推送示例](https://pic.gongyichuren.de/file/1779287166619_470b39663485d8711c0f3d8d4e24244e.png)
 
 ## 适合用来做什么
 

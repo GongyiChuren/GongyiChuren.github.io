@@ -47,6 +47,7 @@ https://github.com/GongyiChuren/tg-watchbot
 - 可以在面板里新增、编辑、删除监控
 - 支持 Linux.do / NodeSeek RSS 模板
 - 使用 SQLite 保存用户、消息、监控状态
+- 监控推送消息可以按时间自动删除，默认 60 分钟
 - 支持 systemd 部署
 
 ## 展示
@@ -55,7 +56,9 @@ https://github.com/GongyiChuren/tg-watchbot
 
 ![tg-watchbot 推送示例](https://pic.gongyichuren.de/file/1779287170665_17b7c8b4040d6334ea62a108d08db644.png)
 
-![tg-watchbot 推送示例](https://pic.gongyichuren.de/file/1779287166619_470b39663485d8711c0f3d8d4e24244e.png)
+![tg-watchbot 推送示例](https://pic.gongyichuren.de/file/1779304138340_40dc85909b22767a56dedb3721be6e47.png)
+
+![tg-watchbot 推送示例](https://pic.gongyichuren.de/file/1779304146783_5323b0b3ee1b0b666b534de87ca0430c.png)
 
 ## 适合用来做什么
 
@@ -77,16 +80,6 @@ python3 -m venv .venv
 
 cp .env.example .env
 cp config.example.yaml config.yaml
-nano .env
-```
-
-`.env` 至少需要填写：
-
-```dotenv
-TELEGRAM_BOT_TOKEN=你的 Bot Token
-ADMIN_CHAT_ID=你的 Telegram 数字 chat id
-WEB_PANEL_USER=admin
-WEB_PANEL_PASSWORD=一个强密码
 ```
 
 启动服务：
@@ -101,11 +94,14 @@ WEB_PANEL_PASSWORD=一个强密码
 http://127.0.0.1:8765
 ```
 
-如果只是先打开面板配置，还没有 Telegram Token，也可以只启动面板：
+默认账号：
 
-```bash
-./.venv/bin/python app.py --panel-only
+```text
+用户名：admin
+密码：change-me
 ```
+
+登录后进入“设置”，填写 Bot Token、管理员 Telegram 数字 chat id、面板账号和密码。保存后需要重启服务，Bot 才会开始收发 Telegram 消息和发送监控通知。
 
 手动执行一次监控：
 
@@ -115,13 +111,15 @@ http://127.0.0.1:8765
 
 ## systemd 部署
 
-README 里已经写了完整的 systemd 部署方式。推荐部署到：
+推荐部署到：
 
 ```text
 /opt/tg-watchbot
 ```
 
-部署完成后，可以用下面的命令查看日志：
+基本流程是：先复制 `.env.example` 和 `config.example.yaml`，前台运行 `./.venv/bin/python app.py` 打开面板，把设置填完整并保存；确认没问题后再启用 systemd。
+
+启用后查看日志：
 
 ```bash
 sudo journalctl -u tg-watchbot -f
@@ -137,6 +135,8 @@ curl http://127.0.0.1:8765/health
 
 - Telegram Bot 不能主动私聊陌生人，对方必须先给 Bot 发过消息
 - `.env` 里有 Token 和密码，不要提交到 GitHub
+- 未填写 Bot Token / 管理员 ID 时，Web 面板能打开，但 Telegram 收发和监控推送不会工作
+- 面板保存设置后不会自动重启，需要手动重启服务
 - Web 面板如果暴露到公网，建议套 Cloudflare Access / 反代鉴权
 - RSS 监控建议 60 秒起步
 - 网页监控建议更保守一点，避免对目标站造成压力

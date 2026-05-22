@@ -11,7 +11,7 @@ tags:
   - "VPS"
 category: "效率工具"
 draft: false
-image: https://GongyiChuren.github.io/picx-images-hosting/cf59034b-300b-4a0f-b3ab-535e827a2204.7zr28ugzbf.webp
+image: https://pic.gongyichuren.de/file/1779437104636_image.png
 ---
 
 最近看 TG 上不少人说封号比较严重。再加上我作为一个刚入门的 MJJ，平时也想更快地获取信息，所以 vibe 了一个自用小工具：`tg-watchbot`。
@@ -35,30 +35,26 @@ https://github.com/GongyiChuren/tg-watchbot
 
 另外，项目支持定时清理监控推送相关状态数据，避免网页监控信息过多，影响正常的双向对话使用。
 
-## 主要功能
+## 主要功能（新版）
 
-- 普通用户私聊 Bot，消息会转发给管理员
-- 管理员可以直接回复用户，也可以主动发**文字 / 图片**
-- 支持封禁、解封、备注、查看用户信息
-- 支持 RSS / Atom 监控
-- 支持网页 CSS selector 抓取
+- 普通用户私聊 Bot，消息自动转发管理员，支持双向回复
+- 管理员支持主动发文字/图片、封禁、解封、备注、快捷回复
+- 收件箱可查看完整双向记录（用户消息、Web 回复、TG 管理员回复）
+- 支持 RSS / Atom 和网页 CSS selector 监控
 - 支持关键词、新条目、价格变化、库存变化提醒
-- 内置 Web 管理面板
-- 可以在面板里新增、编辑、删除监控
-- 支持 Linux.do / NodeSeek RSS 模板
-- 使用 SQLite 保存用户、消息、监控状态
-- 监控推送消息可以按时间自动删除，默认 60 分钟
-- 支持 systemd 部署
+- 支持 TG 群关键词监听：可直接在 Web 面板配置监听
+- TG 群监听支持 AI 总结（Responses / Chat 接口二选一）和模板回退
+- TG 群监听支持限频与去重窗口，降低重复推送与成本
+- TG 群监听新增“已发现群聊”：自动显示群 chat_id，可一键创建监听
+- `/update` 支持安全更新：显示 ahead/behind、脏工作区检查、一键回滚
+- 首页新增监控运行状态（最近成功/失败、耗时、推送数、连续失败）
+- 使用 SQLite 保存用户、消息、监控状态；监控通知默认 60 分钟自动删除
 
 ## 展示
 
-![tg-watchbot 管理面板](https://pic.gongyichuren.de/file/1779287173835_8521cab29a9635743a603582ceb7ba02.png)
+![tg-watchbot 新版管理面板](https://pic.gongyichuren.de/file/1779437104636_image.png)
 
-![tg-watchbot 推送示例](https://pic.gongyichuren.de/file/1779287170665_17b7c8b4040d6334ea62a108d08db644.png)
-
-![tg-watchbot 推送示例](https://pic.gongyichuren.de/file/1779304138340_40dc85909b22767a56dedb3721be6e47.png)
-
-![tg-watchbot 推送示例](https://pic.gongyichuren.de/file/1779304146783_5323b0b3ee1b0b666b534de87ca0430c.png)
+![tg-watchbot TG 群监听与配置](https://pic.gongyichuren.de/file/1779437050727_image.png)
 
 ## 适合用来做什么
 
@@ -73,6 +69,21 @@ https://github.com/GongyiChuren/tg-watchbot
 ```bash
 git clone https://github.com/GongyiChuren/tg-watchbot.git
 cd tg-watchbot
+cp .env.example .env
+cp config.example.yaml config.yaml
+touch tg-watchbot.sqlite3 tg-watchbot.log
+docker compose up -d --build
+```
+
+面板默认地址：
+
+```text
+http://127.0.0.1:8765
+```
+
+如果你不使用 Docker，也可以手动安装：
+
+```bash
 
 python3 -m venv .venv
 ./.venv/bin/pip install -U pip
@@ -86,12 +97,6 @@ cp config.example.yaml config.yaml
 
 ```bash
 ./.venv/bin/python app.py
-```
-
-默认面板地址：
-
-```text
-http://127.0.0.1:8765
 ```
 
 默认账号：

@@ -11,7 +11,7 @@ tags:
   - "Linux"
 category: "效率工具"
 draft: false
-image: /posts/images/proxysudo-hero.png
+image: https://pic.gongyichuren.de/file/1779540526840_afb6f054111d4d70b8bf541ffe_0.png
 ---
 
 最近我做了一个小工具，名字叫 **ProxySudo**。它的目标很直接：把各种代理链接、Base64 订阅、Mihomo/Clash YAML，快速转成你能直接导入客户端的配置。

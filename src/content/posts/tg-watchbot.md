@@ -1,5 +1,5 @@
 ---
-title: Tg-Watchbot：Telegram 双向对话 Bot + 网页关键词推送 + 可视化面板
+title: Tg-Watchbot：Linux.do 关键词实时推送 + Telegram 双向对话 Bot + 可视化面板
 description: 一个轻量级 Python 服务，把 Telegram 双向对话 Bot、Web/RSS 监控推送和可视化管理面板合在一起，适合部署在 VPS、NAT 小鸡或家用服务器上。
 published: 2026-05-20
 
